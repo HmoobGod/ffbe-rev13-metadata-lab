@@ -1,0 +1,82 @@
+name: FFBE revision-13 metadata inventory (manual only)
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Synthetic tests only by default; public packs need separate explicit approval'
+        required: true
+        type: choice
+        options:
+          - synthetic_only
+          - authorized_public_packs
+        default: synthetic_only
+      confirm_public_pack_downloads:
+        description: 'For authorized_public_packs ONLY type: I_AUTHORIZE_PUBLIC_PACK_DOWNLOADS'
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ffbe-rev13-metadata-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  metadata-only:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out workflow files (no writable credentials)
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Python syntax and synthetic-only safety tests
+        run: |
+          set -euo pipefail
+          python3 -m py_compile ffbe_cloud_pack_inventory.py
+          python3 -m unittest discover -s tests -v
+      - name: Require explicit owner confirmation for network resource reads
+        env:
+          RUN_MODE: ${{ inputs.mode }}
+          CONFIRMATION: ${{ inputs.confirm_public_pack_downloads }}
+        run: |
+          set -euo pipefail
+          case "$RUN_MODE" in
+            synthetic_only)
+              echo 'SYNTHETIC ONLY: no game-resource downloads; no manifest artifact produced.'
+              ;;
+            authorized_public_packs)
+              test "$CONFIRMATION" = 'I_AUTHORIZE_PUBLIC_PACK_DOWNLOADS' || {
+                echo 'FAIL CLOSED: public resource downloads not confirmed' >&2
+                exit 2
+              }
+              ;;
+            *) echo 'FAIL CLOSED: unsupported mode' >&2; exit 2 ;;
+          esac
+      - name: Stream public release packages one at a time and produce metadata-only JSON
+        if: inputs.mode == 'authorized_public_packs'
+        env:
+          FFBE_AUTHORIZED_PUBLIC_PACK_DOWNLOADS: YES
+        run: |
+          set -euo pipefail
+          mkdir -p metadata-output
+          python3 ffbe_cloud_pack_inventory.py \
+            --mode public \
+            --index revision13_packs.json \
+            --output metadata-output/FFBE_rev13_public_pack_file_manifest.json \
+            --allow-public-downloads
+      - name: Upload metadata-only JSON artifact (no resource ZIPs)
+        if: inputs.mode == 'authorized_public_packs'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ffbe-rev13-metadata-only
+          path: metadata-output/FFBE_rev13_public_pack_file_manifest.json
+          if-no-files-found: error
+          retention-days: 7
