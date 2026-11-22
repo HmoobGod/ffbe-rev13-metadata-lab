@@ -35,6 +35,13 @@ ALLOWED_ARCHIVE_TYPES = {zipfile.ZIP_STORED, zipfile.ZIP_DEFLATED}
 ALLOWED_HOSTS = {'github.com', 'release-assets.githubusercontent.com',
                  'objects.githubusercontent.com', 'github-releases.githubusercontent.com',
                  'raw.githubusercontent.com'}
+# Exact native destination roots permitted by pinned DataPack.java::destination().
+# These are FILE roots; directory markers may also name their ancestors.
+NATIVE_FILE_ROOTS = (
+    'mst', 'localized_texts', 'common_lang', 'en', 'homeMarquee',
+    'exvius/equipment-enhancement',
+)
+
 BRIDGE_PATHS = (
     ('MST_DIR', 'mst_decoded', 'dir'),
     ('TEXT_DIR', 'text_decoded', 'dir'),
@@ -55,6 +62,11 @@ def fail(message):
 
 
 def safe_path(raw: str, *, directory: bool = False) -> str:
+    """Validate a *file* destination or an explicit structural directory marker.
+
+    Only the exact three file destination forms from pinned DataPack.java are
+    permitted. Directory entries are structural only and never hashed as files.
+    """
     if not isinstance(raw, str) or not raw or raw.startswith('/') or '\\' in raw:
         fail('Invalid ZIP entry name')
     if unicodedata.normalize('NFC', raw) != raw:
@@ -71,11 +83,23 @@ def safe_path(raw: str, *, directory: bool = False) -> str:
         fail('Unsafe ZIP entry component')
     if raw != PurePosixPath(raw).as_posix():
         fail('Noncanonical ZIP path')
-    if not (raw.startswith('static/') or raw.startswith('native/')):
-        fail('Unsupported pack prefix (expected static/ or native/)')
-    if len(parts) < 2:
-        fail('Empty static/native destination')
-    return raw
+
+    # Android's DataPack.java skips directory entries without invoking
+    # destination(). Still reject anything outside an authenticated tree.
+    if directory and raw in ('static', 'native', 'metadata'):
+        return raw
+    if raw.startswith('static/'):
+        return raw
+    if raw.startswith('native/'):
+        relative = raw[len('native/'):]
+        if any(relative.startswith(prefix + '/') for prefix in NATIVE_FILE_ROOTS):
+            return raw
+        if directory and (relative in NATIVE_FILE_ROOTS or relative == 'exvius'):
+            return raw
+        fail('Native path outside pinned Android installer allowlist')
+    if raw == 'metadata/registry.json' and not directory:
+        return raw
+    fail('Unsupported ZIP member path (only static/, approved native/, or exact metadata/registry.json)')
 
 
 def _collision(register: dict[str, str], path: str):
@@ -98,6 +122,29 @@ def _reject_shape_conflicts(existing_files: set[str], path: str):
             fail('File used as parent directory')
     if any(x.startswith(path + '/') for x in existing_files):
         fail('Directory used as file')
+
+
+def _reject_directory_conflicts(existing_files: set[str], directory: str):
+    if directory in existing_files or any(directory.startswith(f + '/') for f in existing_files):
+        fail('Directory marker conflicts with an existing file')
+
+
+def _reject_file_marker_conflicts(directories: set[str], path: str):
+    if path in directories or any(directory.startswith(path + '/') for directory in directories):
+        fail('File conflicts with an explicit directory marker')
+
+
+def _member_failure(pack_id: str, pack_order: int | None, member_index: int,
+                    raw_name: str, is_dir: bool, reason: str) -> str:
+    """Bounded ASCII-only first-error identity; does not print member contents."""
+    name_hash = hashlib.sha256(raw_name.encode('utf-8', 'surrogatepass')).hexdigest()
+    preview = ascii(raw_name)  # escapes control chars, newlines and non-ASCII
+    if len(preview) > 144:
+        preview = preview[:140] + '...'
+    short_reason = ascii(reason)[1:-1][:150]
+    return (f'pack={pack_id} pack_order_index={pack_order} member_index={member_index} '
+            f'kind={"directory" if is_dir else "file"} path={preview} '
+            f'path_sha256={name_hash} reason={short_reason}')
 
 
 def pack_url_ok(url: str) -> bool:
@@ -265,79 +312,115 @@ def bridge_key(root_relative):
     return None
 
 
-def process_zip(path: Path, item: dict, global_register: dict, global_files: set):
+def process_zip(path: Path, item: dict, global_register: dict, global_files: set,
+                *, global_directories: set | None = None,
+                accepted_directories: list | None = None,
+                pack_order_index: int | None = None):
     entries = []
     members_seen = set()
+    member_records = []
     local_register = {}
     local_files = set()
+    local_directories = set()
+    if global_directories is None:
+        global_directories = set()
     total = 0
     try:
         with zipfile.ZipFile(path, 'r', allowZip64=True) as z:
             infos = z.infolist()
             if not infos or len(infos) > MAX_MEMBERS:
                 fail('Invalid number of ZIP entries')
-            for info in infos:
+            for member_index, info in enumerate(infos):
                 is_dir = info.is_dir()
-                raw_path = safe_path(info.filename, directory=is_dir)
-                if raw_path in members_seen:
-                    fail('Duplicate ZIP member')
-                members_seen.add(raw_path)
-                _collision(local_register, raw_path)
-                if (info.flag_bits & 1 or info.compress_type not in ALLOWED_ARCHIVE_TYPES or
-                    info.file_size < 0 or info.file_size > item['unpackedSize']):
-                    fail('Encrypted/unsupported/oversized entry')
-                # Unix creators can encode a symlink/device mode; refuse it.
-                mode = stat.S_IFMT(info.external_attr >> 16)
-                if mode not in (0, stat.S_IFDIR if is_dir else stat.S_IFREG):
-                    fail('Special/symlink or mismatched ZIP entry type')
-                if is_dir:
-                    if info.file_size:
-                        fail('Nonempty ZIP directory')
-                    continue
-                _reject_shape_conflicts(local_files, raw_path)
-                local_files.add(raw_path)
-                total += info.file_size
-                if total > item['unpackedSize']:
-                    fail('Unpacked byte sum exceeded pinned value')
-                digest = hashlib.sha256()
-                read = 0
-                with z.open(info, mode='r') as src:
-                    while True:
-                        block = src.read(CHUNK)
-                        if not block:
-                            break
-                        read += len(block)
-                        if read > info.file_size:
-                            fail('ZIP entry exceeded expected size')
-                        digest.update(block)
-                if read != info.file_size:
-                    fail('Incomplete ZIP member')
-                scope, mapped = raw_path.split('/', 1)
-                static_path = mapped if scope == 'static' else None
-                entries.append({
-                    'archive_entry': raw_path, 'scope': scope,
-                    'data_root_relative_path': static_path,
-                    'bridge_path_key': bridge_key(mapped) if scope == 'static' else None,
-                    'native_relative_path_unmapped': mapped if scope == 'native' else None,
-                    'bytes': read, 'sha256': digest.hexdigest(),
-                    'source_pack_id': item['id'], 'source_pack_sha256': item['sha256'],
-                    'source_pack_url': item['url'], 'pack_order_index': None,
-                    'archive_checksum_verified': True,
-                    'required_optional': 'UNKNOWN_NOT_AUTHENTICATED',
-                    'per_file_external_provenance': 'PACK_ENTRY_ONLY',
-                })
+                try:
+                    raw_path = safe_path(info.filename, directory=is_dir)
+                    if raw_path in members_seen:
+                        fail('Duplicate ZIP member')
+                    members_seen.add(raw_path)
+                    _collision(local_register, raw_path)
+                    if (info.flag_bits & 1 or info.compress_type not in ALLOWED_ARCHIVE_TYPES or
+                        info.file_size < 0 or info.file_size > item['unpackedSize']):
+                        fail('Encrypted/unsupported/oversized entry')
+                    # A trailing slash alone does not prove an archive entry is a directory.
+                    mode = stat.S_IFMT(info.external_attr >> 16)
+                    if mode not in (0, stat.S_IFDIR if is_dir else stat.S_IFREG):
+                        fail('Special/symlink or mismatched ZIP entry type')
+                    if is_dir:
+                        if info.file_size:
+                            fail('Nonempty ZIP directory')
+                        _reject_directory_conflicts(local_files, raw_path)
+                        local_directories.add(raw_path)
+                        member_records.append((member_index, raw_path, True, info.filename))
+                        continue
+                    _reject_shape_conflicts(local_files, raw_path)
+                    _reject_file_marker_conflicts(local_directories, raw_path)
+                    local_files.add(raw_path)
+                    total += info.file_size
+                    if total > item['unpackedSize']:
+                        fail('Unpacked byte sum exceeded pinned value')
+                    digest = hashlib.sha256()
+                    read = 0
+                    with z.open(info, mode='r') as src:
+                        while True:
+                            block = src.read(CHUNK)
+                            if not block:
+                                break
+                            read += len(block)
+                            if read > info.file_size:
+                                fail('ZIP entry exceeded expected size')
+                            digest.update(block)
+                    if read != info.file_size:
+                        fail('Incomplete ZIP member')
+                    scope, mapped = raw_path.split('/', 1)
+                    static_path = mapped if scope == 'static' else None
+                    android_destination = ('exvius/data/' + raw_path if scope == 'static'
+                                           else mapped if scope == 'native'
+                                           else 'exvius/data/registry.json')
+                    entries.append({
+                        'archive_entry': raw_path, 'scope': scope,
+                        'data_root_relative_path': static_path,
+                        'android_installer_relative_destination': android_destination,
+                        'bridge_path_key': bridge_key(mapped) if scope == 'static' else None,
+                        'native_relative_path_unmapped': mapped if scope == 'native' else None,
+                        'bytes': read, 'sha256': digest.hexdigest(),
+                        'source_pack_id': item['id'], 'source_pack_sha256': item['sha256'],
+                        'source_pack_url': item['url'], 'pack_order_index': None,
+                        'zip_member_index': member_index,
+                        'archive_checksum_verified': True,
+                        'required_optional': 'UNKNOWN_NOT_AUTHENTICATED',
+                        'per_file_external_provenance': 'PACK_ENTRY_ONLY',
+                    })
+                    member_records.append((member_index, raw_path, False, info.filename))
+                except InventoryError as exc:
+                    fail(_member_failure(item['id'], pack_order_index, member_index,
+                                         info.filename, is_dir, str(exc)))
+                except (OSError, EOFError, RuntimeError, zipfile.BadZipFile,
+                        NotImplementedError) as exc:
+                    fail(_member_failure(item['id'], pack_order_index, member_index,
+                                         info.filename, is_dir,
+                                         'ZIP member read error: ' + type(exc).__name__))
             if total != item['unpackedSize']:
                 fail('Unpacked byte count mismatches pinned pack')
     except (OSError, EOFError, RuntimeError, zipfile.BadZipFile, NotImplementedError) as exc:
-        fail('ZIP inspection failed closed: %s: %s' % (type(exc).__name__, str(exc)[:160]))
-    # Apply global name/collision checks only *after* entire pack passes.
-    scoped_new = []
-    for e in entries:
-        raw_path = e['archive_entry']
-        _collision(global_register, raw_path)
-        _reject_shape_conflicts(global_files, raw_path)
-        scoped_new.append(raw_path)
-    global_files.update(scoped_new)
+        fail('ZIP inspection failed closed: ' + type(exc).__name__)
+
+    # Validate the complete pack before publishing any directory/file identities.
+    # Overlaying exactly matching FILE paths across packs remains permitted.
+    for member_index, raw_path, is_dir, original_name in member_records:
+        try:
+            _collision(global_register, raw_path)
+            if is_dir:
+                _reject_directory_conflicts(global_files, raw_path)
+            else:
+                _reject_shape_conflicts(global_files, raw_path)
+                _reject_file_marker_conflicts(global_directories, raw_path)
+        except InventoryError as exc:
+            fail(_member_failure(item['id'], pack_order_index, member_index,
+                                 original_name, is_dir, str(exc)))
+    global_files.update(local_files)
+    global_directories.update(local_directories)
+    if accepted_directories is not None:
+        accepted_directories.extend(sorted(local_directories))
     return entries
 
 
@@ -380,12 +463,14 @@ def process(index: dict, *, pack_dir: Path | None = None, allow_public: bool = F
         verify_public_source_metadata(index)
     global_register = {}
     global_files = set()
+    global_directories = set()
     file_entries = []
     pack_reports = []
     overwritten = {}
     if pack_dir is not None and (not pack_dir.is_dir() or pack_dir.is_symlink()):
         fail('Local pack directory not found or is symlink')
     for idx, item in enumerate(index['packs']):
+        directories_seen = []
         filename = urllib.parse.urlsplit(item['url']).path.rsplit('/', 1)[-1]
         if not re.fullmatch(r'[A-Za-z0-9_.-]+\.zip', filename):
             fail('Invalid package filename')
@@ -394,12 +479,18 @@ def process(index: dict, *, pack_dir: Path | None = None, allow_public: bool = F
                 archive = Path(temp) / 'one-pack.zip'
                 _download_one(item, archive)
                 verify_pack_bytes(archive, item)
-                entries = process_zip(archive, item, global_register, global_files)
+                entries = process_zip(archive, item, global_register, global_files,
+                                      global_directories=global_directories,
+                                      accepted_directories=directories_seen,
+                                      pack_order_index=idx)
         else:
             archive = pack_dir / filename
             verify_pack_bytes(archive, item)
             stable_before = archive.stat()
-            entries = process_zip(archive, item, global_register, global_files)
+            entries = process_zip(archive, item, global_register, global_files,
+                                  global_directories=global_directories,
+                                  accepted_directories=directories_seen,
+                                  pack_order_index=idx)
             stable_after = archive.stat()
             if (stable_before.st_dev, stable_before.st_ino, stable_before.st_size,
                 stable_before.st_mtime_ns, stable_before.st_ctime_ns) != (
@@ -417,7 +508,9 @@ def process(index: dict, *, pack_dir: Path | None = None, allow_public: bool = F
         pack_reports.append({'id': item['id'], 'archive_sha256': item['sha256'],
                              'archive_size_bytes': item['size'],
                              'unpacked_bytes_verified': item['unpackedSize'],
-                             'files_hashed': len(entries), 'order_index': idx})
+                             'files_hashed': len(entries),
+                             'directory_markers_validated': len(directories_seen),
+                             'order_index': idx})
     last_static = {}
     for row in file_entries:
         if row['scope'] == 'static':
@@ -453,13 +546,16 @@ def process(index: dict, *, pack_dir: Path | None = None, allow_public: bool = F
         'summary': {'packs_verified': len(pack_reports), 'pack_entry_file_count': len(file_entries),
                     'unique_static_paths': len(last_static),
                     'native_entries_unmapped': sum(x['scope'] == 'native' for x in file_entries),
+                    'metadata_registry_entries_hashed': sum(x['scope'] == 'metadata' for x in file_entries),
+                    'directory_markers_validated': sum(x['directory_markers_validated'] for x in pack_reports),
                     'bridge_paths_with_matching_static_files': sum(x['presence_in_indexed_packages'] for x in coverage.values()),
                     'claimed_manifest_files_not_an_equivalence_check': index.get('files'),
                     'source_data_root_verified_complete': False},
         'limitations': [
             'Only a stream-hashed ZIP entry inventory; no actual Android data_root was assembled or tested.',
             'Pack list is transcribed from pinned public source metadata; PUBLIC mode checks the exact raw pinned Git blob before accessing packages.',
-            'Static ZIP entry path is mapped to data_root relative path; native/ entries are NOT mapped into any bridge path.',
+            'Static ZIP entry path is mapped to data_root relative path; native/ and metadata/registry.json entries are NOT bridge paths.',
+            'Explicit directory markers are validated and counted but not treated as files.',
             'Later packs overwrite identical static paths in declared order; native installer behavior is not independently runtime verified.',
             'Nested game-assets.apk is only hashed as an opaque ZIP member; never opened or extracted.',
             'Required/optional/generated and seven-path completeness need independent authenticated source/runtime evidence.',
@@ -497,7 +593,15 @@ def main(argv=None):
             result['summary']['packs_verified'], result['summary']['pack_entry_file_count']))
         return 0
     except (InventoryError, OSError, ValueError, UnicodeError, TypeError, zipfile.BadZipFile) as exc:
-        print('FAIL CLOSED (no accepted output): %s: %s' % (type(exc).__name__, str(exc)[:240]), file=sys.stderr)
+        detail = str(exc)
+        # A validated member failure has a bounded, ASCII-escaped diagnostic.
+        # Preserve its complete filename digest and reason in cloud logs; unrelated
+        # errors retain the previous 240-character output limit.
+        member_detail = (isinstance(exc, InventoryError) and detail.startswith('pack=')
+                         and ' member_index=' in detail and ' path_sha256=' in detail
+                         and ' reason=' in detail)
+        limit = 640 if member_detail else 240
+        print('FAIL CLOSED (no accepted output): %s: %s' % (type(exc).__name__, detail[:limit]), file=sys.stderr)
         return 2
 
 
