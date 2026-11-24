@@ -46,9 +46,10 @@ jobs:
           assert len(b)==origin['archive_size']
           assert hashlib.new(origin['checksum_algorithm'],b).hexdigest()==origin['archive_checksum']
           origin['archive_sha256']=hashlib.sha256(b).hexdigest()
+          assert origin['archive_sha256']=='5d9ac77fb6ff43d9da518a337b4fcf8f9097113df531d99ccefe80ef7ce8250b'
           with zipfile.ZipFile('sdk.zip') as z:
               assert z.testzip() is None
-              for suffix in ['zipalign','lib/apksigner.jar','source.properties']:
+              for suffix in ['zipalign','lib/apksigner.jar','source.properties','lib64/libc++.so']:
                   matches=[n for n in z.namelist() if n.endswith('/'+suffix) and n.count('/')==1+suffix.count('/')]
                   assert len(matches)==1,(suffix,matches)
                   p=pathlib.Path('transfer')/suffix
@@ -62,8 +63,9 @@ jobs:
           PY
           cd transfer
           grep -F 'Pkg.Revision=36.0.0' source.properties
+          export LD_LIBRARY_PATH="$PWD/lib64"
           ldd ./zipalign | tee dependencies.txt
-          ! grep -q 'not found' dependencies.txt
+          if grep -q 'not found' dependencies.txt; then exit 1; fi
           java -jar lib/apksigner.jar version | tee apksigner-version.txt
           python3 - <<'PY'
           import zipfile
@@ -71,7 +73,7 @@ jobs:
           PY
           ./zipalign -P 16 -f 4 ../synthetic.zip ../aligned.zip
           ./zipalign -c -P 16 -v 4 ../aligned.zip
-          sha256sum zipalign lib/apksigner.jar source.properties origin.json dependencies.txt apksigner-version.txt
+          sha256sum zipalign lib/apksigner.jar lib64/libc++.so source.properties origin.json dependencies.txt apksigner-version.txt
       - name: Transfer tools only
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
