@@ -33,6 +33,10 @@ jobs:
           uname -m
           free -h
           ls -l /dev/kvm || true
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends libpulse0 libnss3 libxcomposite1 libxcursor1 libxi6 libxtst6 libxrandr2 libxkbcommon0 libgl1 libegl1 libdbus-1-3 libxcb1 libfontconfig1
+          ldd "$sdk/emulator/qemu/linux-x86_64/qemu-system-x86_64" | tee "$root/qemu-dependencies.txt"
+          if grep -q "not found" "$root/qemu-dependencies.txt"; then exit 1; fi
           "$emu" -version
           "$emu" -accel-check || true
           "$adb" version
@@ -65,7 +69,7 @@ jobs:
           cat > "$PROBE_ROOT/boot.sh" <<'EOF'
           set -euo pipefail
           ip link set lo up
-          test "$(ls /sys/class/net | tr '\n' ' ')" = 'lo '
+          ip -j link | python3 -c 'import sys,json; assert [x["ifname"] for x in json.load(sys.stdin)]==["lo"]'
           test -z "$(ip route show)"
           test -z "$(ip -6 route show default)"
           ip -br addr
