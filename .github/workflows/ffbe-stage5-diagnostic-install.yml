@@ -1,0 +1,17 @@
+name: FFBE Stage 5 diagnostic installation only
+# Registration only. Select the reviewed lab branch to run the actual workflow.
+# The default branch cannot acquire a secret, start a runner, or install anything.
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Enter INSTALL_DIAGNOSTIC_ONLY after reviewing the lab branch'
+        required: true
+        type: string
+permissions: {}
+jobs:
+  registration-only:
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo 'DEFAULT_BRANCH_DISABLED'
