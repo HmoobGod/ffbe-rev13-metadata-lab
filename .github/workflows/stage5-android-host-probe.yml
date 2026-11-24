@@ -67,7 +67,7 @@ jobs:
           EOF
           cat > "$PROBE_ROOT/boot.sh" <<'EOF'
           set -euo pipefail
-          ip link set lo up
+          test "$(id -u)" -ne 0
           ip -j link | python3 -c 'import sys,json; assert [x["ifname"] for x in json.load(sys.stdin)]==["lo"]'
           test -z "$(ip route show)"
           test -z "$(ip -6 route show default)"
@@ -93,4 +93,6 @@ jobs:
           echo 'SOFTWARE_BOOT_TIMEOUT__NO_APPROVAL'
           exit 1
           EOF
-          timeout 420 unshare --user --map-root-user --net bash "$PROBE_ROOT/boot.sh"
+          # Create disconnected network namespace with host privilege, then drop privilege before launching guest.
+          runner_user="$(id -un)"
+          sudo timeout 420 unshare --net bash -c 'set -euo pipefail; ip link set lo up; exec runuser -u "$1" -- env ANDROID_SDK_ROOT="$2" ANDROID_HOME="$2" PROBE_ROOT="$3" ANDROID_AVD_HOME="$4" ANDROID_USER_HOME="$5" bash "$3/boot.sh"' _ "$runner_user" "$ANDROID_SDK_ROOT" "$PROBE_ROOT" "$ANDROID_AVD_HOME" "$ANDROID_USER_HOME"
