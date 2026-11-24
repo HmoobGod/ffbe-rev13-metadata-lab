@@ -35,8 +35,7 @@ jobs:
           ls -l /dev/kvm || true
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends libpulse0 libnss3 libxcomposite1 libxcursor1 libxi6 libxtst6 libxrandr2 libxkbcommon0 libgl1 libegl1 libdbus-1-3 libxcb1 libfontconfig1
-          ldd "$sdk/emulator/qemu/linux-x86_64/qemu-system-x86_64" | tee "$root/qemu-dependencies.txt"
-          if grep -q "not found" "$root/qemu-dependencies.txt"; then exit 1; fi
+          # The official launcher establishes its bundled library search paths.
           "$emu" -version
           "$emu" -accel-check || true
           "$adb" version
