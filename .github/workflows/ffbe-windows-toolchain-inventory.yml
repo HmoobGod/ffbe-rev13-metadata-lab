@@ -1,0 +1,92 @@
+name: FFBE game-free Windows toolchain inventory
+on:
+  workflow_dispatch:
+permissions: {}
+jobs:
+  inventory:
+    if: github.event_name == 'workflow_dispatch' && github.event.repository.private == false && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: windows-2022
+    timeout-minutes: 5
+    steps:
+      - name: Inspect preinstalled tools only
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          # No checkout, downloads, installs, game files, compiler invocation or builds.
+          function Inspect-File([string]$Path) {
+            if ([string]::IsNullOrWhiteSpace($Path) -or -not (Test-Path -LiteralPath $Path -PathType Leaf)) {
+              return @{ present = $false }
+            }
+            $item = Get-Item -LiteralPath $Path
+            return @{ present = $true; path = $item.FullName; bytes = $item.Length; sha256 = (Get-FileHash -LiteralPath $item.FullName -Algorithm SHA256).Hash.ToLowerInvariant() }
+          }
+          function Find-Application([string]$Name) {
+            $cmd = Get-Command -Name $Name -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($null -eq $cmd) { return @{ present = $false } }
+            return Inspect-File $cmd.Source
+          }
+          function Inspect-ReleaseField([string]$Path, [string]$Pattern) {
+            if (Test-Path -LiteralPath $Path -PathType Leaf) {
+              return @(Get-Content -LiteralPath $Path | Where-Object { $_ -match $Pattern })
+            }
+            return @()
+          }
+          $report = [ordered]@{
+            status = 'INVENTORY_ONLY_NOT_BUILD_APPROVAL'
+            image_os = $env:ImageOS
+            image_version = $env:ImageVersion
+            runner_os = $env:RUNNER_OS
+            runner_arch = $env:RUNNER_ARCH
+            workflow_commit = $env:GITHUB_SHA
+            real_runtime_approval = $false
+            automatic_installer_approval = $false
+            required = @{ java = '11'; python = '3.10'; gradle = '7.6.4'; agp = '7.4.2'; chaquopy = '16.1.0'; sdk = '33'; build_tools = '36.0.0'; apktool = '3.0.3'; gadget = '17.24.3-arm64'; original_frida_compiler = 'UNKNOWN_EXACT_VERSION' }
+          }
+          $jdk = [ordered]@{ present = $false }
+          if ($env:JAVA_HOME_11_X64) {
+            $root = $env:JAVA_HOME_11_X64
+            $jdk = [ordered]@{
+              java = (Inspect-File (Join-Path $root 'bin/java.exe'))
+              javac = (Inspect-File (Join-Path $root 'bin/javac.exe'))
+              release = @(Inspect-ReleaseField (Join-Path $root 'release') '^JAVA_VERSION=')
+            }
+          }
+          $report.jdk11 = $jdk
+          $report.path_java = Find-Application 'java.exe'
+          $report.path_python = Find-Application 'python.exe'
+          $python310 = @()
+          if ($env:RUNNER_TOOL_CACHE) {
+            $pythonRoot = Join-Path $env:RUNNER_TOOL_CACHE 'Python'
+            if (Test-Path -LiteralPath $pythonRoot -PathType Container) {
+              foreach ($dir in @(Get-ChildItem -LiteralPath $pythonRoot -Directory | Where-Object Name -Match '^3\.10\.\d+$' | Sort-Object Name | Select-Object -First 10)) {
+                $exe = Join-Path $dir.FullName 'x64/python.exe'
+                $python310 += @{ cache_label = $dir.Name; executable = (Inspect-File $exe) }
+              }
+            }
+          }
+          $report.cached_cpython310 = $python310
+          $report.node = Find-Application 'node.exe'
+          $report.npm = Find-Application 'npm.cmd'
+          $report.frida_compile_on_path = Find-Application 'frida-compile.cmd'
+          $report.gradle_on_path = Find-Application 'gradle.bat'
+          $report.apktool_on_path = Find-Application 'apktool.bat'
+          $sdk = [ordered]@{ present = $false }
+          if ($env:ANDROID_HOME) {
+            $root = $env:ANDROID_HOME
+            $platform = Join-Path $root 'platforms/android-33'
+            $bt = Join-Path $root 'build-tools/36.0.0'
+            $sdk = [ordered]@{
+              android_jar = (Inspect-File (Join-Path $platform 'android.jar'))
+              platform_revision = @(Inspect-ReleaseField (Join-Path $platform 'source.properties') '^Pkg\.Revision\s*=')
+              tools_revision = @(Inspect-ReleaseField (Join-Path $bt 'source.properties') '^Pkg\.Revision\s*=')
+              d8 = (Inspect-File (Join-Path $bt 'd8.bat'))
+              d8_jar = (Inspect-File (Join-Path $bt 'lib/d8.jar'))
+              zipalign = (Inspect-File (Join-Path $bt 'zipalign.exe'))
+              apksigner = (Inspect-File (Join-Path $bt 'apksigner.bat'))
+              apksigner_jar = (Inspect-File (Join-Path $bt 'lib/apksigner.jar'))
+            }
+          }
+          $report.sdk = $sdk
+          $report.original_compiler_provenance = 'HOLD: original npm package version, lockfile and CLI hash unavailable; PATH observation is not identity proof'
+          $report.unverified = @('Gradle 7.6.4 distribution bytes', 'AGP and Chaquopy resolution', 'Android Python wheels', 'Apktool 3.0.3 identity', 'Frida Gadget identity', 'original Node/npm versions and compiler package lock')
+          $report | ConvertTo-Json -Depth 8
