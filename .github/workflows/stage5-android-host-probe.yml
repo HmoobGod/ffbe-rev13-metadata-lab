@@ -1,4 +1,4 @@
-name: Stage5 game-free ARM64 JNI package-service correction
+name: Stage5 game-free ARM64 JNI KVM stability test
 on:
   push:
     branches: [stage5-android-host-probe-20261124]
@@ -152,14 +152,25 @@ jobs:
           ip -br addr
           export HOME="$PROBE_ROOT/home"
           mkdir -m 700 "$HOME"
-          export ANDROID_I_WANT_MY_TCG=yes
+          unset ANDROID_I_WANT_MY_TCG
           unset ADB_SERVER_SOCKET
           adb="$ANDROID_SDK_ROOT/platform-tools/adb"
           emulator="$ANDROID_SDK_ROOT/emulator/emulator"
+          # Check access in the actual unprivileged isolated guest-launch context.
+          test -c /dev/kvm
+          test -r /dev/kvm && test -w /dev/kvm
+          id
+          accel_result="$(timeout 30 "$emulator" -accel-check 2>&1)"
+          printf '%s\n' "$accel_result"
+          printf '%s\n' "$accel_result" | grep -E 'KVM .*installed and usable'
+          echo 'KVM_USABILITY_PASS'
           "$adb" -P 5037 start-server
           export ADB_SERVER_SOCKET=tcp:127.0.0.1:5037
-          "$emulator" @stage5_empty -accel off -no-window -gpu swiftshader_indirect -no-audio -no-snapshot -wipe-data -no-boot-anim -no-metrics -port 5554 -memory 1536 -cores 2 > "$PROBE_ROOT/emulator.log" 2>&1 &
+          "$emulator" @stage5_empty -accel on -no-window -gpu swiftshader_indirect -no-audio -no-snapshot -wipe-data -no-boot-anim -no-metrics -port 5554 -memory 1536 -cores 2 > "$PROBE_ROOT/emulator.log" 2>&1 &
           pid=$!
+          # Preserve earlier system-server failures, not just post-crash logcat tail.
+          (timeout 1500 bash -c 'set -e; "$1" -s emulator-5554 wait-for-device; exec "$1" -s emulator-5554 logcat -b all -v threadtime' _ "$adb") > "$PROBE_ROOT/guest-continuous.log" 2>&1 &
+          log_pid=$!
           finish() {
             rc=$?
             trap - EXIT
@@ -169,7 +180,10 @@ jobs:
               timeout 20 "$adb" -s emulator-5554 shell service check package || true
               timeout 20 "$adb" -s emulator-5554 shell pidof system_server || true
               timeout 30 "$adb" -s emulator-5554 logcat -b all -d -t 300 || true
+              echo 'EARLIER_SYSTEM_FAILURE_DIAGNOSTICS'
+              grep -Ei 'watchdog|system_server|system server|am_kill|am_crash|am_anr|out of memory|lowmemorykiller|lmkd|Fatal signal|FATAL EXCEPTION|DeadSystemException' "$PROBE_ROOT/guest-continuous.log" | tail -180 || true
             fi
+            kill "$log_pid" 2>/dev/null || true
             kill "$pid" 2>/dev/null || true
             timeout 20 "$adb" kill-server || true
             tail -80 "$PROBE_ROOT/emulator.log" || true
@@ -254,5 +268,10 @@ jobs:
           EOF
           # Create disconnected network namespace with host privilege, then drop privilege before launching guest.
           runner_user="$(id -un)"
+          # Use the existing KVM group; no world-writable device or privileged emulator.
+          test -c /dev/kvm
+          test "$(stat -c %G /dev/kvm)" = kvm
+          getent group kvm
+          sudo usermod -aG kvm "$runner_user"
           bash -n "$PROBE_ROOT/boot.sh"
           sudo timeout 1560 unshare --net bash -c 'set -euo pipefail; ip link set lo up; exec runuser -u "$1" -- env ANDROID_SDK_ROOT="$2" ANDROID_HOME="$2" PROBE_ROOT="$3" ANDROID_AVD_HOME="$4" ANDROID_USER_HOME="$5" bash "$3/boot.sh"' _ "$runner_user" "$ANDROID_SDK_ROOT" "$PROBE_ROOT" "$ANDROID_AVD_HOME" "$ANDROID_USER_HOME"
