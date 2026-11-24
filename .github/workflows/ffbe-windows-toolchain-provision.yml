@@ -1,0 +1,74 @@
+name: FFBE game-free Windows provisioning smoke
+on:
+  workflow_dispatch:
+permissions: {}
+jobs:
+  provision:
+    if: github.event_name == 'workflow_dispatch' && github.event.repository.private == false && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: windows-2022
+    timeout-minutes: 15
+    steps:
+      - name: Verify runner Java and SDK evidence
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not $env:JAVA_HOME_11_X64 -or -not $env:ANDROID_HOME) { throw 'Required host tools unavailable' }
+          $jdk = $env:JAVA_HOME_11_X64
+          $java = Join-Path $jdk 'bin/java.exe'
+          $sdk = $env:ANDROID_HOME
+          $checks = @(
+            @{ path = $java; sha = '73863e50a5280c7df0fde4218dc9bbe6b8f7d76dcdb0deffce840bcc3e321372' },
+            @{ path = (Join-Path $jdk 'bin/javac.exe'); sha = '3f5f77fd45dba28c156bf9710736698a082cce73013602e7ca34949489fae959' },
+            @{ path = (Join-Path $sdk 'platforms/android-33/android.jar'); sha = 'fd628aa21321859a9035c6aae4b084b7d3fdb3f230be5cd5ec76541e32f7c963' },
+            @{ path = (Join-Path $sdk 'build-tools/36.0.0/lib/d8.jar'); sha = '4097ff9c46c185c6e7214da7fe9b1befb5adeea5cc9ca349270e0249904f9240' }
+          )
+          foreach ($check in $checks) {
+            if (-not (Test-Path -LiteralPath $check.path -PathType Leaf)) { throw 'Missing previously observed tool' }
+            if ((Get-FileHash -LiteralPath $check.path -Algorithm SHA256).Hash.ToLowerInvariant() -ne $check.sha) { throw 'Host tool identity changed: re-inventory required' }
+          }
+          "JAVA_HOME=$jdk" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          (Join-Path $jdk 'bin') | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          & $java -version
+          if ($LASTEXITCODE -ne 0) { throw 'Java version smoke failed' }
+      - name: Provision exact Python candidate (isolated runner only)
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: '3.10.11'
+          architecture: x64
+          check-latest: false
+      - name: Verify Python and checksum-pinned Gradle distribution
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $python = (Get-Command python.exe -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
+          $version = & $python -I -S -c 'import sys; print(".".join(map(str, sys.version_info[:3])))'
+          if ($LASTEXITCODE -ne 0 -or $version -ne '3.10.11') { throw 'Python version mismatch' }
+          $root = Join-Path $env:RUNNER_TEMP 'ffbe-toolchain-smoke'
+          if (Test-Path -LiteralPath $root) { throw 'Disposable directory already exists' }
+          New-Item -ItemType Directory -Path $root | Out-Null
+          $zip = Join-Path $root 'gradle-7.6.4-bin.zip'
+          $expected = 'bed1da33cca0f557ab13691c77f38bb67388119e4794d113e051039b80af9bb1'
+          Invoke-WebRequest -Uri 'https://services.gradle.org/distributions/gradle-7.6.4-bin.zip' -OutFile $zip -TimeoutSec 180
+          $actual = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actual -ne $expected) { throw 'Gradle archive SHA-256 mismatch' }
+          Expand-Archive -LiteralPath $zip -DestinationPath $root
+          $gradle = Join-Path $root 'gradle-7.6.4/bin/gradle.bat'
+          $env:GRADLE_USER_HOME = Join-Path $root 'gradle-home'
+          Set-Location -LiteralPath $root
+          $result = & $gradle --no-daemon --offline --version
+          if ($LASTEXITCODE -ne 0 -or -not ($result -match '^Gradle 7\.6\.4\s*$')) { throw 'Gradle version smoke failed' }
+          $result | Write-Host
+          [ordered]@{
+            status = 'TOOL_SMOKE_ONLY_NOT_BUILD_APPROVAL'
+            workflow_commit = $env:GITHUB_SHA
+            image_version = $env:ImageVersion
+            python_version = $version
+            python_path = $python
+            python_sha256 = (Get-FileHash -LiteralPath $python -Algorithm SHA256).Hash.ToLowerInvariant()
+            python_provenance = 'Official setup-python candidate; release asset digest unavailable; not original tool identity'
+            gradle_zip_sha256 = $actual
+            java_home = $env:JAVA_HOME
+            real_runtime_approval = $false
+            automatic_installer_approval = $false
+            original_frida_compiler = 'HOLD'
+          } | ConvertTo-Json -Depth 4
