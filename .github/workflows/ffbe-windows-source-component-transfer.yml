@@ -1,0 +1,227 @@
+name: FFBE source-derived integration component transfer (no game client)
+on:
+  workflow_dispatch:
+permissions: {}
+concurrency:
+  group: ffbe-source-component-transfer
+  cancel-in-progress: false
+jobs:
+  source-compile:
+    if: github.event_name == 'workflow_dispatch' && github.event.repository.private == false && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: windows-2022
+    timeout-minutes: 55
+    steps:
+      - name: Verify runner Java and SDK evidence
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not $env:JAVA_HOME_11_X64 -or -not $env:ANDROID_HOME) { throw 'Required host tools unavailable' }
+          $jdk = $env:JAVA_HOME_11_X64
+          $java = Join-Path $jdk 'bin/java.exe'
+          $sdk = $env:ANDROID_HOME
+          $checks = @(
+            @{ path = $java; sha = '73863e50a5280c7df0fde4218dc9bbe6b8f7d76dcdb0deffce840bcc3e321372' },
+            @{ path = (Join-Path $jdk 'bin/javac.exe'); sha = '3f5f77fd45dba28c156bf9710736698a082cce73013602e7ca34949489fae959' },
+            @{ path = (Join-Path $sdk 'platforms/android-33/android.jar'); sha = 'fd628aa21321859a9035c6aae4b084b7d3fdb3f230be5cd5ec76541e32f7c963' },
+            @{ path = (Join-Path $sdk 'build-tools/36.0.0/lib/d8.jar'); sha = '4097ff9c46c185c6e7214da7fe9b1befb5adeea5cc9ca349270e0249904f9240' }
+          )
+          foreach ($check in $checks) {
+            if (-not (Test-Path -LiteralPath $check.path -PathType Leaf)) { throw 'Missing previously observed tool' }
+            if ((Get-FileHash -LiteralPath $check.path -Algorithm SHA256).Hash.ToLowerInvariant() -ne $check.sha) { throw 'Host tool identity changed: re-inventory required' }
+          }
+          "JAVA_HOME=$jdk" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          (Join-Path $jdk 'bin') | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          & $java -version
+          if ($LASTEXITCODE -ne 0) { throw 'Java version smoke failed' }
+      - name: Provision exact Python candidate (isolated runner only)
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: '3.10.11'
+          architecture: x64
+          check-latest: false
+      - name: Verify Python and checksum-pinned Gradle distribution
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $python = (Get-Command python.exe -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
+          $version = & $python -I -S -c 'import sys; print(".".join(map(str, sys.version_info[:3])))'
+          if ($LASTEXITCODE -ne 0 -or $version -ne '3.10.11') { throw 'Python version mismatch' }
+          $root = Join-Path $env:RUNNER_TEMP 'ffbe-toolchain-smoke'
+          if (Test-Path -LiteralPath $root) { throw 'Disposable directory already exists' }
+          New-Item -ItemType Directory -Path $root | Out-Null
+          $zip = Join-Path $root 'gradle-7.6.4-bin.zip'
+          $expected = 'bed1da33cca0f557ab13691c77f38bb67388119e4794d113e051039b80af9bb1'
+          Invoke-WebRequest -Uri 'https://services.gradle.org/distributions/gradle-7.6.4-bin.zip' -OutFile $zip -TimeoutSec 180
+          $actual = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actual -ne $expected) { throw 'Gradle archive SHA-256 mismatch' }
+          Expand-Archive -LiteralPath $zip -DestinationPath $root
+          $gradle = Join-Path $root 'gradle-7.6.4/bin/gradle.bat'
+          $env:GRADLE_USER_HOME = Join-Path $root 'gradle-home'
+          Set-Location -LiteralPath $root
+          $result = & $gradle --no-daemon --offline --version
+          if ($LASTEXITCODE -ne 0 -or -not ($result -match '^Gradle 7\.6\.4\s*$')) { throw 'Gradle version smoke failed' }
+          $result | Write-Host
+          [ordered]@{
+            status = 'TOOL_SMOKE_ONLY_NOT_BUILD_APPROVAL'
+            workflow_commit = $env:GITHUB_SHA
+            image_version = $env:ImageVersion
+            python_version = $version
+            python_path = $python
+            python_sha256 = (Get-FileHash -LiteralPath $python -Algorithm SHA256).Hash.ToLowerInvariant()
+            python_provenance = 'Official setup-python candidate; release asset digest unavailable; not original tool identity'
+            gradle_zip_sha256 = $actual
+            java_home = $env:JAVA_HOME
+            real_runtime_approval = $false
+            automatic_installer_approval = $false
+            original_frida_compiler = 'HOLD'
+          } | ConvertTo-Json -Depth 4
+      - name: Restore exact approved source-only checkpoint
+        id: stage
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:GITHUB_SHA -notmatch '^[0-9a-f]{40}$' -or $env:GITHUB_REPOSITORY -ne 'HmoobGod/ffbe-rev13-metadata-lab') { throw 'Wrong lab identity' }
+          $root = Join-Path $env:RUNNER_TEMP 'ffbe-toolchain-smoke'
+          $python = (Get-Command python.exe -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
+          if ((Get-FileHash -LiteralPath $python -Algorithm SHA256).Hash.ToLowerInvariant() -ne '3cce33d75d6fdae4e004d0bdf149320b3147482a9caf370079dcb9c191a1b260') { throw 'Python candidate drift' }
+          $base = "https://raw.githubusercontent.com/HmoobGod/ffbe-rev13-metadata-lab/$env:GITHUB_SHA/toolchain/source-compile/"
+          $manifest = Join-Path $root 'ffbe-source-compile-manifest.json'
+          $restore = Join-Path $root 'ffbe-source-restore.py'
+          Invoke-WebRequest -Uri ($base+'ffbe-source-compile-manifest.json') -OutFile $manifest -TimeoutSec 60
+          Invoke-WebRequest -Uri ($base+'ffbe-source-restore.py') -OutFile $restore -TimeoutSec 60
+          if ((Get-FileHash -LiteralPath $manifest -Algorithm SHA256).Hash.ToLowerInvariant() -ne '2e4f931bb22628c6046aec46012517d20e4be1f75c703e76e87d9a52877bac0b') { throw 'Source manifest drift' }
+          if ((Get-FileHash -LiteralPath $restore -Algorithm SHA256).Hash.ToLowerInvariant() -ne 'de14790d8700410e9986239424a1e0b67a0ff41d63a7aa04177f79f81fdf53a4') { throw 'Restore script drift' }
+          $stage = Join-Path $root 'actual-source-only'
+          & $python -I -S $restore restore $manifest $stage
+          if ($LASTEXITCODE -ne 0) { throw 'Exact public source restoration failed' }
+      - name: Compile all actual Python modules without importing
+        if: ${{ !cancelled() && steps.stage.outcome == 'success' }}
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = Join-Path $env:RUNNER_TEMP 'ffbe-toolchain-smoke'
+          & python -I -S (Join-Path $root 'ffbe-source-restore.py') compile (Join-Path $root 'ffbe-source-compile-manifest.json') (Join-Path $root 'actual-source-only')
+          if ($LASTEXITCODE -ne 0) { throw 'Actual target Python compilation failed' }
+      - name: Compile actual Android startup provider and DEX
+        if: ${{ !cancelled() && steps.stage.outcome == 'success' }}
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = Join-Path $env:RUNNER_TEMP 'ffbe-toolchain-smoke'
+          $stage = Join-Path $root 'actual-source-only'
+          $classes = Join-Path $root 'init-classes'
+          $dex = Join-Path $root 'init-dex'
+          New-Item -ItemType Directory -Path $classes,$dex | Out-Null
+          $androidJar = Join-Path $env:ANDROID_HOME 'platforms/android-33/android.jar'
+          $d8 = Join-Path $env:ANDROID_HOME 'build-tools/36.0.0/d8.bat'
+          if ((Get-FileHash -LiteralPath $d8 -Algorithm SHA256).Hash.ToLowerInvariant() -ne 'ccc279cdc020fc20cb7889d829b9dc36a462ce4fca8ac713088f6be100b714d0') { throw 'D8 launcher drift' }
+          & (Join-Path $env:JAVA_HOME 'bin/javac.exe') -source 8 -target 8 -bootclasspath $androidJar -d $classes (Join-Path $stage 'source/exvius/android/TestInitProvider.java')
+          if ($LASTEXITCODE -ne 0) { throw 'Actual startup provider compilation failed' }
+          $class = Join-Path $classes 'com/exvius/offline/test/TestInitProvider.class'
+          & $d8 --lib $androidJar --min-api 24 --output $dex $class
+          if ($LASTEXITCODE -ne 0) { throw 'Actual startup provider DEX failed' }
+          $output = Join-Path $dex 'classes.dex'
+          if (-not (Test-Path -LiteralPath $output -PathType Leaf)) { throw 'Missing provider DEX' }
+          [ordered]@{status='ACTUAL_PROVIDER_COMPILED_ONLY';class_sha256=(Get-FileHash -LiteralPath $class -Algorithm SHA256).Hash.ToLowerInvariant();dex_sha256=(Get-FileHash -LiteralPath $output -Algorithm SHA256).Hash.ToLowerInvariant();real_runtime_approval=$false;automatic_installer_approval=$false} | ConvertTo-Json
+      - name: Build actual embedded runtime component only
+        if: ${{ !cancelled() && steps.stage.outcome == 'success' }}
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = Join-Path $env:RUNNER_TEMP 'ffbe-toolchain-smoke'
+          $stage = Join-Path $root 'actual-source-only'
+          $gradle = Join-Path $root 'gradle-7.6.4/bin/gradle.bat'
+          $env:GRADLE_USER_HOME = Join-Path $root 'gradle-home'
+          Set-Location -LiteralPath (Join-Path $stage 'source/memorial/android')
+          & $gradle --no-daemon --console=plain assembleDebug
+          if ($LASTEXITCODE -ne 0) { throw 'Actual embedded runtime component build failed' }
+          $apk = @(Get-ChildItem -LiteralPath (Join-Path $stage 'source/build/android/local-runtime/outputs/apk/debug') -Filter '*.apk' -File)
+          if ($apk.Count -ne 1) { throw 'Unexpected runtime component APK count' }
+          & python -I -S -c 'import sys,zipfile,json; z=zipfile.ZipFile(sys.argv[1]); n=z.namelist(); assert "AndroidManifest.xml" in n and "classes.dex" in n and any(x.startswith("assets/chaquopy/") for x in n) and any(x.startswith("lib/arm64-v8a/") for x in n); assert not any(x.startswith("lib/") and not x.startswith("lib/arm64-v8a/") for x in n if not x.endswith("/")); print(json.dumps({"archive_entries":len(n),"dex_count":sum(x.endswith(".dex") and "/" not in x for x in n)}))' $apk[0].FullName
+          if ($LASTEXITCODE -ne 0) { throw 'Runtime component archive inspection failed' }
+          [ordered]@{status='ACTUAL_EMBEDDED_RUNTIME_COMPONENT_ONLY';workflow_commit=$env:GITHUB_SHA;apk_bytes=$apk[0].Length;apk_sha256=(Get-FileHash -LiteralPath $apk[0].FullName -Algorithm SHA256).Hash.ToLowerInvariant();real_runtime_approval=$false;automatic_installer_approval=$false} | ConvertTo-Json
+      - name: Compile actual FFBE JavaScript with locked IIFE candidate
+        if: ${{ !cancelled() && steps.stage.outcome == 'success' }}
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = Join-Path $env:RUNNER_TEMP 'ffbe-toolchain-smoke'
+          $stage = Join-Path $root 'actual-source-only'
+          $tool = Join-Path $root 'frida-locked'
+          New-Item -ItemType Directory -Path $tool | Out-Null
+          Set-Location -LiteralPath $tool
+          $node = (Get-Command node.exe -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
+          $npm = (Get-Command npm.cmd -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
+          if ((Get-FileHash -LiteralPath $node -Algorithm SHA256).Hash.ToLowerInvariant() -ne '247e9693d316da9857e44990e5e11709f596f18112251b8026ec6eed80bdf38a') { throw 'Node drift' }
+          if ((Get-FileHash -LiteralPath $npm -Algorithm SHA256).Hash.ToLowerInvariant() -ne '21b46c69ad6e2f231f02a9e120f4ba6c8e75fef5a45637103002eab99f888ab8') { throw 'npm drift' }
+          $lockExpected = 'd60a2418232db1481b27aef9c43dfb1efcdee0a0197aa9236253d11b1e6a2c6b'
+          Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/HmoobGod/ffbe-rev13-metadata-lab/9df0176c2ec837670053836b7ec23e8de94497c0/toolchain/frida-candidate/package-lock.json' -OutFile 'package-lock.json' -TimeoutSec 60
+          if ((Get-FileHash -LiteralPath 'package-lock.json' -Algorithm SHA256).Hash.ToLowerInvariant() -ne $lockExpected) { throw 'Lock identity mismatch' }
+          '{"name":"ffbe-synthetic-compiler-fixture","version":"1.0.0","private":true,"type":"module","dependencies":{"frida-compile":"19.1.0","frida":"17.24.3"},"overrides":{"frida":"17.24.3"}}' | Set-Content -LiteralPath 'package.json' -Encoding utf8NoBOM
+          $env:npm_config_registry = 'https://registry.npmjs.org/'
+          $env:npm_config_cache = Join-Path $tool 'npm-cache'
+          $env:npm_config_audit = 'false'
+          $env:npm_config_fund = 'false'
+          $env:npm_config_fetch_retries = '1'
+          $env:npm_config_fetch_timeout = '60000'
+          & $npm ci --no-audit --no-fund
+          if ($LASTEXITCODE -ne 0) { throw 'Locked compiler installation failed' }
+          if ((Get-FileHash -LiteralPath 'package-lock.json' -Algorithm SHA256).Hash.ToLowerInvariant() -ne $lockExpected) { throw 'Lock changed' }
+          $cli = Join-Path $tool 'node_modules/frida-compile/dist/cli.js'
+          if ((Get-FileHash -LiteralPath $cli -Algorithm SHA256).Hash.ToLowerInvariant() -ne '4368b342a6437d86664d4a50f26ab014aec337ff5871d650e434ea3931e3bde8') { throw 'Compiler CLI changed' }
+          $out = Join-Path $root 'actual-android-test.bundle.js'
+          Set-Location -LiteralPath $stage
+          $env:NODE_OPTIONS = '--max-old-space-size=6144'
+          & $node $cli (Join-Path $stage 'source/exvius/android_test.js') -o $out -S -c -T none -B iife
+          if ($LASTEXITCODE -ne 0) { throw 'Actual FFBE IIFE compilation failed' }
+          if (-not (Test-Path -LiteralPath $out -PathType Leaf)) { throw 'Actual IIFE missing' }
+          & python -I -S -c 'import sys,pathlib; p=pathlib.Path(sys.argv[1]); assert 0<p.stat().st_size<=268435456; b=p.read_bytes(); tokens=(b"function ",b"(",b"!",b"var ",b"let ",b"const ",b"Object.defineProperty",b"\"use strict\"",b"\x27use strict\x27",b"//",b"/*"); assert b.splitlines(keepends=True)[0].lstrip().startswith(tokens) and not b.startswith(bytes.fromhex("f09f93a6")) and b"frida-java-bridge" not in b; print("Actual IIFE requires no header stripping")' $out
+          if ($LASTEXITCODE -ne 0) { throw 'Actual IIFE packaging format mismatch' }
+          & $node --check $out
+          if ($LASTEXITCODE -ne 0) { throw 'Actual IIFE syntax parse failed' }
+          [ordered]@{status='ACTUAL_IIFE_COMPILED_NOT_EXECUTED';workflow_commit=$env:GITHUB_SHA;bundle_bytes=(Get-Item -LiteralPath $out).Length;bundle_sha256=(Get-FileHash -LiteralPath $out -Algorithm SHA256).Hash.ToLowerInvariant();original_compiler_identity='UNKNOWN';real_runtime_approval=$false;automatic_installer_approval=$false} | ConvertTo-Json
+      - name: Verify all exact sources unchanged after compilation
+        if: ${{ !cancelled() && steps.stage.outcome == 'success' }}
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = Join-Path $env:RUNNER_TEMP 'ffbe-toolchain-smoke'
+          & python -I -S (Join-Path $root 'ffbe-source-restore.py') verify (Join-Path $root 'ffbe-source-compile-manifest.json') (Join-Path $root 'actual-source-only')
+          if ($LASTEXITCODE -ne 0) { throw 'Approved source changed during compilation' }
+      - name: Stage only source-derived components and authenticated public tools
+        if: success()
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = Join-Path $env:RUNNER_TEMP 'ffbe-toolchain-smoke'
+          $out = Join-Path $env:RUNNER_TEMP 'ffbe-source-component-transfer'
+          if (Test-Path -LiteralPath $out) { throw 'Unexpected existing transfer directory' }
+          New-Item -ItemType Directory -Path $out | Out-Null
+          $apk = @(Get-ChildItem -LiteralPath (Join-Path $root 'actual-source-only/source/build/android/local-runtime/outputs/apk/debug') -Filter '*.apk' -File)
+          if ($apk.Count -ne 1) { throw 'Unexpected runtime component APK count' }
+          Copy-Item -LiteralPath $apk[0].FullName -Destination (Join-Path $out 'runtime-component.apk')
+          Copy-Item -LiteralPath (Join-Path $root 'init-dex/classes.dex') -Destination (Join-Path $out 'startup-provider.dex')
+          Copy-Item -LiteralPath (Join-Path $root 'actual-android-test.bundle.js') -Destination (Join-Path $out 'android-test.iife.js')
+          $apktool = Join-Path $out 'apktool_3.0.3.jar'
+          $gadget = Join-Path $out 'frida-gadget-17.24.3-android-arm64.so.xz'
+          Invoke-WebRequest -Uri 'https://github.com/iBotPeaches/Apktool/releases/download/v3.0.3/apktool_3.0.3.jar' -OutFile $apktool -TimeoutSec 180
+          Invoke-WebRequest -Uri 'https://github.com/frida/frida/releases/download/17.24.3/frida-gadget-17.24.3-android-arm64.so.xz' -OutFile $gadget -TimeoutSec 180
+          if ((Get-FileHash -LiteralPath $apktool -Algorithm SHA256).Hash.ToLowerInvariant() -ne 'dbf930b076c6b9be08d57c449cacefc3bdd6b71ebd59b3066fc0e1f5b14f9423') { throw 'Apktool identity mismatch' }
+          if ((Get-FileHash -LiteralPath $gadget -Algorithm SHA256).Hash.ToLowerInvariant() -ne 'c5b86db3569d06769da2b29a80c7a275422c3bb292bd7881ea30566fd2161948') { throw 'Gadget identity mismatch' }
+          & python -I -S -c 'import sys,zipfile; z=zipfile.ZipFile(sys.argv[1]); assert not any(n.endswith("/libgame.so") or n=="libgame.so" for n in z.namelist()); print("No original game native library in component")' (Join-Path $out 'runtime-component.apk')
+          if ($LASTEXITCODE -ne 0) { throw 'Unexpected original client content' }
+          $expected = @('android-test.iife.js','apktool_3.0.3.jar','frida-gadget-17.24.3-android-arm64.so.xz','runtime-component.apk','startup-provider.dex')
+          $files = @(Get-ChildItem -LiteralPath $out -File | Sort-Object Name)
+          if ($files.Count -ne 5 -or (Compare-Object $expected @($files.Name))) { throw 'Transfer allowlist mismatch' }
+          $rows = @($files | ForEach-Object { [ordered]@{name=$_.Name;bytes=$_.Length;sha256=(Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()} })
+          [ordered]@{status='SOURCE_DERIVED_COMPONENTS_ONLY';workflow_commit=$env:GITHUB_SHA;files=$rows;real_runtime_approval=$false;automatic_installer_approval=$false} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $out 'TRANSFER.json') -Encoding utf8NoBOM
+          Get-Content -LiteralPath (Join-Path $out 'TRANSFER.json')
+      - name: Retain allowlisted source-derived components for transfer (one day)
+        if: success()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ffbe-source-components-only
+          path: ${{ runner.temp }}/ffbe-source-component-transfer/
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 6
