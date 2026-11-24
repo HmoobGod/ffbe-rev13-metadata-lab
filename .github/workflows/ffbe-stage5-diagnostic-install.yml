@@ -1,0 +1,267 @@
+name: FFBE Stage 5 diagnostic installation only
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Enter INSTALL_DIAGNOSTIC_ONLY after reviewing this exact workflow'
+        required: true
+        type: string
+permissions: {}
+concurrency:
+  group: ffbe-stage5-diagnostic-install
+  cancel-in-progress: false
+jobs:
+  diagnostic:
+    if: github.event_name == 'workflow_dispatch' && github.repository == 'HmoobGod/ffbe-rev13-metadata-lab' && github.ref == 'refs/heads/stage5-android-host-probe-20261124' && github.actor == 'HmoobGod' && github.run_attempt == 1 && inputs.confirmation == 'INSTALL_DIAGNOSTIC_ONLY'
+    environment: ffbe-runtime
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - name: Provision pinned public SDK
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Official SDK provisioning only; no credentials in this step."
+          root="$RUNNER_TEMP/stage5-sdk"
+          mkdir -m 700 "$root"
+          test -n "$ANDROID_HOME"
+          sdk="$(realpath "$ANDROID_HOME")"
+          emu="$sdk/emulator/emulator"
+          adb="$sdk/platform-tools/adb"
+          manager="$sdk/cmdline-tools/latest/bin/sdkmanager"
+          avd="$sdk/cmdline-tools/latest/bin/avdmanager"
+          test -x "$manager"
+          test -x "$avd"
+          if ! test -x "$emu" || ! test -x "$adb"; then
+            timeout 240 "$manager" --sdk_root="$sdk" "emulator" "platform-tools"
+          fi
+          test -x "$emu"
+          test -x "$adb"
+          uname -m
+          free -h
+          ls -l /dev/kvm || true
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends libpulse0 libnss3 libxcomposite1 libxcursor1 libxi6 libxtst6 libxrandr2 libxkbcommon0 libgl1 libegl1 libdbus-1-3 libxcb1 libfontconfig1
+          # The official launcher establishes its bundled library search paths.
+          "$emu" -version
+          "$emu" -accel-check || true
+          "$adb" version
+          image="system-images;android-30;google_apis;x86_64"
+          img="$sdk/system-images/android-30/google_apis/x86_64"
+          if ! test -f "$img/system.img"; then
+            timeout 240 "$manager" --sdk_root="$sdk" "$image"
+          fi
+          test -f "$img/system.img"
+          cat "$img/source.properties"
+          printf '%s  %s\n' \
+            5c48296df39c35bad694a361312e3c9915e47d4061eed475b061c98625599173 "$emu" \
+            7c8042370cb04ad0f6ead179174d8cc52f119ffbcafdefe6db9a4db49b731f95 "$adb" \
+            a38738806b82a340dbe5320c5d6361e95b48cd66ef4cb363725cadee21bb7a0f "$img/system.img" \
+            f538ade853df744dbb51fa8e2f60a543c9024c877c000ef50c1122d8125a5536 "$img/source.properties" | sha256sum -c --status
+          echo 'PINNED_SDK_IDENTITY_PASS'
+          echo "ANDROID_SDK_ROOT=$sdk" >> "$GITHUB_ENV"
+          echo "PROBE_ROOT=$root" >> "$GITHUB_ENV"
+          echo "ANDROID_AVD_HOME=$root/avd" >> "$GITHUB_ENV"
+          echo "ANDROID_USER_HOME=$root/android" >> "$GITHUB_ENV"
+      - name: Retrieve exact diagnostic APK using temporary read-only authorization
+        shell: bash
+        env:
+          FFBE_DRIVE_ACCESS_TOKEN: ${{ secrets.FFBE_DRIVE_ACCESS_TOKEN }}
+          FFBE_DRIVE_FILE_ID: ${{ secrets.FFBE_DRIVE_FILE_ID }}
+        run: |
+          set -euo pipefail
+          umask 077
+          timeout 300 python3 - <<'PY'
+          import os, re, pathlib, hashlib, urllib.request, sys
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, req, fp, code, msg, headers, newurl):
+                  return None
+          token = os.environ.pop("FFBE_DRIVE_ACCESS_TOKEN", "")
+          file_id = os.environ.pop("FFBE_DRIVE_FILE_ID", "")
+          target = pathlib.Path(os.environ["PROBE_ROOT"]) / "diagnostic.apk"
+          expected = 74189339
+          digest = "f153a2d7cf60954cece329d2b3e6781a38e65e52908f910a117f6c82c56b2f3d"
+          try:
+              if not token or re.fullmatch(r"[A-Za-z0-9._~-]+", token) is None:
+                  raise ValueError("missing or malformed token")
+              if re.fullmatch(r"[A-Za-z0-9_-]{10,200}", file_id) is None:
+                  raise ValueError("missing or malformed file ID")
+              req = urllib.request.Request(
+                  "https://www.googleapis.com/drive/v3/files/" + file_id + "?alt=media",
+                  headers={"Authorization": "Bearer " + token, "Accept-Encoding": "identity"})
+              opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
+              h = hashlib.sha256()
+              count = 0
+              with opener.open(req, timeout=45) as response, target.open("xb") as out:
+                  if response.status != 200:
+                      raise ValueError("unexpected response")
+                  for chunk in iter(lambda: response.read(1024 * 1024), b""):
+                      count += len(chunk)
+                      if count > expected:
+                          raise ValueError("oversize")
+                      h.update(chunk)
+                      out.write(chunk)
+              if count != expected or h.hexdigest() != digest:
+                  raise ValueError("identity mismatch")
+          except Exception:
+              target.unlink(missing_ok=True)
+              print("AUTHORIZED_TRANSFER_HOLD__NO_APK_ADMITTED")
+              sys.exit(1)
+          print("EXACT_DIAGNOSTIC_APK_IDENTITY_PASS")
+          PY
+      - name: Fresh disconnected KVM guest and diagnostic-only startup
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -m 700 "$ANDROID_AVD_HOME" "$ANDROID_USER_HOME"
+          printf 'no\n' | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/avdmanager" create avd -n stage5_empty -k 'system-images;android-30;google_apis;x86_64'
+          cat >> "$ANDROID_AVD_HOME/stage5_empty.avd/config.ini" <<'EOF'
+          hw.ramSize=1536
+          hw.cpu.ncore=2
+          hw.lcd.width=480
+          hw.lcd.height=800
+          hw.lcd.density=160
+          disk.dataPartition.size=1073741824
+          EOF
+          cat > "$PROBE_ROOT/boot.sh" <<'EOF'
+          set -euo pipefail
+          test "$(id -u)" -ne 0
+          ip -j link | python3 -c 'import sys,json; assert [x["ifname"] for x in json.load(sys.stdin)]==["lo"]'
+          test -z "$(ip route show)"
+          test -z "$(ip -6 route show default)"
+          ip -br addr
+          export HOME="$PROBE_ROOT/home"
+          mkdir -m 700 "$HOME"
+          unset ANDROID_I_WANT_MY_TCG
+          unset ADB_SERVER_SOCKET
+          adb="$ANDROID_SDK_ROOT/platform-tools/adb"
+          emulator="$ANDROID_SDK_ROOT/emulator/emulator"
+          # Check access in the actual unprivileged isolated guest-launch context.
+          test -c /dev/kvm
+          test -r /dev/kvm && test -w /dev/kvm
+          id
+          accel_result="$(timeout 30 "$emulator" -accel-check 2>&1)"
+          printf '%s\n' "$accel_result"
+          printf '%s\n' "$accel_result" | grep -E 'KVM .*installed and usable'
+          echo 'KVM_USABILITY_PASS'
+          "$adb" -P 5037 start-server
+          export ADB_SERVER_SOCKET=tcp:127.0.0.1:5037
+          "$emulator" @stage5_empty -accel on -no-window -gpu swiftshader_indirect -no-audio -no-snapshot -wipe-data -no-boot-anim -no-metrics -port 5554 -memory 1536 -cores 2 > "$PROBE_ROOT/emulator.log" 2>&1 &
+          pid=$!
+          finish() {
+            rc=$?
+            trap - EXIT
+            if (( rc != 0 )); then
+              echo "DIAGNOSTIC_RUNTIME_HOLD_EXIT=$rc"
+            fi
+            kill "$pid" 2>/dev/null || true
+            timeout 20 "$adb" kill-server >/dev/null 2>&1 || true
+            exit "$rc"
+          }
+          trap finish EXIT
+          for i in $(seq 1 64); do
+            kill -0 "$pid" 2>/dev/null || { echo "emulator exited"; exit 1; }
+            if test "$(timeout 8 "$adb" -s emulator-5554 shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 1; then
+              "$adb" -s emulator-5554 shell getprop ro.build.version.sdk
+              "$adb" -s emulator-5554 shell getprop ro.product.cpu.abilist
+              "$adb" -s emulator-5554 shell getprop ro.dalvik.vm.native.bridge
+              "$adb" -s emulator-5554 shell pm list packages -3
+              test "$(timeout 30 "$adb" -s emulator-5554 shell getprop ro.build.version.sdk | tr -d '\r')" = 30
+              timeout 30 "$adb" -s emulator-5554 shell getprop ro.product.cpu.abilist | tr -d '\r' | grep -Eq '(^|,)arm64-v8a(,|$)'
+              test "$(timeout 30 "$adb" -s emulator-5554 shell getprop ro.dalvik.vm.native.bridge | tr -d '\r')" = libndk_translation.so
+              test -z "$(timeout 30 "$adb" -s emulator-5554 shell pm list packages -3 | tr -d '\r')"
+              echo 'KVM_BOOT_PASS__EMPTY_GUEST_ONLY'
+              # Require three consecutive successful real package-manager queries with a stable system_server PID.
+              stable=0
+              previous_pid=""
+              for attempt in $(seq 1 12); do
+                kill -0 "$pid"
+                if service="$(timeout 30 "$adb" -s emulator-5554 shell service check package 2>&1)" &&
+                   [[ "$(printf '%s' "$service" | tr -d '\r')" == 'Service package: found' ]] &&
+                   current_pid="$(timeout 30 "$adb" -s emulator-5554 shell pidof system_server | tr -d '\r')" &&
+                   [[ "$current_pid" =~ ^[0-9]+$ ]] &&
+                   path_result="$(timeout 45 "$adb" -s emulator-5554 shell cmd package path android 2>&1)" &&
+                   [[ "$(printf '%s' "$path_result" | tr -d '\r')" == 'package:/system/framework/framework-res.apk' ]]; then
+                  if [[ "$previous_pid" == "$current_pid" ]]; then
+                    stable=$((stable + 1))
+                  else
+                    stable=1
+                  fi
+                  previous_pid="$current_pid"
+                  echo "PACKAGE_SERVICE_SAMPLE=$attempt STABLE=$stable SYSTEM_SERVER_PID=$current_pid"
+                  if (( stable >= 3 )); then break; fi
+                else
+                  echo "PACKAGE_SERVICE_NOT_READY_SAMPLE=$attempt"
+                  stable=0
+                  previous_pid=""
+                fi
+                sleep 10
+              done
+              if (( stable < 3 )); then
+                echo 'PACKAGE_SERVICE_READINESS_HOLD'
+                exit 1
+              fi
+              echo 'PACKAGE_SERVICE_READINESS_PASS'
+              test "$(stat -c %s "$PROBE_ROOT/diagnostic.apk")" = 74189339
+              printf '%s  %s\n' f153a2d7cf60954cece329d2b3e6781a38e65e52908f910a117f6c82c56b2f3d "$PROBE_ROOT/diagnostic.apk" | sha256sum -c --status
+              if ! timeout 240 "$adb" -s emulator-5554 install --no-streaming "$PROBE_ROOT/diagnostic.apk" > "$PROBE_ROOT/install.log" 2>&1; then
+                echo 'DIAGNOSTIC_INSTALL_HOLD'
+                exit 1
+              fi
+              tr -d '\r' < "$PROBE_ROOT/install.log" | grep -Fxq Success
+              timeout 45 "$adb" -s emulator-5554 shell pm path com.exvius.offline.test | tr -d '\r' | grep -Eq '^package:/data/app/.*/base\.apk$'
+              test "$(timeout 30 "$adb" -s emulator-5554 shell pm list packages -3 | tr -d '\r')" = 'package:com.exvius.offline.test'
+              echo 'FFBE_DIAGNOSTIC_INSTALL_PASS'
+              test "$(timeout 30 "$adb" -s emulator-5554 shell pidof system_server | tr -d '\r')" = "$previous_pid"
+              timeout 30 "$adb" -s emulator-5554 shell service check activity | tr -d '\r' | grep -Fxq 'Service activity: found'
+              timeout 120 "$adb" -s emulator-5554 shell am start -W -n com.exvius.offline.test/.InstallationCheckActivity > "$PROBE_ROOT/start.log" 2>&1
+              tr -d '\r' < "$PROBE_ROOT/start.log" | grep -Fxq 'Status: ok'
+              timeout 30 "$adb" -s emulator-5554 shell pidof com.exvius.offline.test | tr -d '\r' > "$PROBE_ROOT/pid.txt"
+              grep -Eq '^[0-9]+$' "$PROBE_ROOT/pid.txt"
+              timeout 45 "$adb" -s emulator-5554 shell uiautomator dump /sdcard/ffbe_diag.xml > "$PROBE_ROOT/ui-dump.log" 2>&1
+              timeout 30 "$adb" -s emulator-5554 shell cat /sdcard/ffbe_diag.xml > "$PROBE_ROOT/ui.xml"
+              python3 - "$PROBE_ROOT/ui.xml" <<'PY'
+          import sys, xml.etree.ElementTree as ET
+          tree = ET.parse(sys.argv[1])
+          marker = "FFBE installation-only diagnostic. Gameplay remains on HOLD."
+          assert any(n.get("package") == "com.exvius.offline.test" and n.get("text") == marker for n in tree.iter("node"))
+          PY
+              timeout 30 "$adb" -s emulator-5554 shell dumpsys activity activities > "$PROBE_ROOT/activities.log"
+              grep -Eq '(mResumedActivity|topResumedActivity):.*com\.exvius\.offline\.test/(\.InstallationCheckActivity|com\.exvius\.offline\.test\.InstallationCheckActivity)([[:space:]}]|$)' "$PROBE_ROOT/activities.log"
+              test "$(timeout 30 "$adb" -s emulator-5554 shell pidof com.exvius.offline.test | tr -d '\r')" = "$(cat "$PROBE_ROOT/pid.txt")"
+              test "$(timeout 30 "$adb" -s emulator-5554 shell pidof system_server | tr -d '\r')" = "$previous_pid"
+              echo 'FFBE_DIAGNOSTIC_UI_WITNESS_PASS'
+              timeout 30 "$adb" -s emulator-5554 shell rm -f /sdcard/ffbe_diag.xml >/dev/null 2>&1
+              timeout 60 "$adb" -s emulator-5554 uninstall com.exvius.offline.test > "$PROBE_ROOT/uninstall.log" 2>&1
+              tr -d '\r' < "$PROBE_ROOT/uninstall.log" | grep -Fxq Success
+              test -z "$(timeout 30 "$adb" -s emulator-5554 shell pm list packages -3 | tr -d '\r')"
+              echo 'FFBE_DIAGNOSTIC_REMOVAL_PASS'
+              echo 'DIAGNOSTIC_ONLY_PASS__GAMEPLAY_HOLD'
+              exit 0
+            fi
+            sleep 5
+          done
+          echo 'KVM_BOOT_TIMEOUT__NO_APPROVAL'
+          exit 1
+          EOF
+          # Create disconnected network namespace with host privilege, then drop privilege before launching guest.
+          runner_user="$(id -un)"
+          # Use the existing KVM group; no world-writable device or privileged emulator.
+          test -c /dev/kvm
+          test "$(stat -c %G /dev/kvm)" = kvm
+          getent group kvm
+          sudo usermod -aG kvm "$runner_user"
+          bash -n "$PROBE_ROOT/boot.sh"
+          sudo timeout 1560 unshare --net bash -c 'set -euo pipefail; ip link set lo up; exec runuser -u "$1" -- env -i PATH=/usr/local/bin:/usr/bin:/bin ANDROID_SDK_ROOT="$2" ANDROID_HOME="$2" PROBE_ROOT="$3" ANDROID_AVD_HOME="$4" ANDROID_USER_HOME="$5" bash "$3/boot.sh"' _ "$runner_user" "$ANDROID_SDK_ROOT" "$PROBE_ROOT" "$ANDROID_AVD_HOME" "$ANDROID_USER_HOME"
+      - name: Remove disposable runner inputs
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="$RUNNER_TEMP/stage5-sdk"
+          if test -d "$target"; then
+            rm -rf -- "$target"
+          fi
+          test ! -e "$target"
+          echo 'DISPOSABLE_INPUTS_REMOVED'
+          echo 'real_runtime_approval=false; automatic_installer_approval=false; gameplay_admission=HOLD'
