@@ -1,0 +1,260 @@
+name: FFBE synthetic packaging resource fixture R2
+on:
+  workflow_dispatch:
+permissions: {}
+jobs:
+  provision:
+    if: github.event_name == 'workflow_dispatch' && github.event.repository.private == false && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: windows-2022
+    timeout-minutes: 45
+    steps:
+      - name: Verify runner Java and SDK evidence
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not $env:JAVA_HOME_11_X64 -or -not $env:ANDROID_HOME) { throw 'Required host tools unavailable' }
+          $jdk = $env:JAVA_HOME_11_X64
+          $java = Join-Path $jdk 'bin/java.exe'
+          $sdk = $env:ANDROID_HOME
+          $checks = @(
+            @{ path = $java; sha = '73863e50a5280c7df0fde4218dc9bbe6b8f7d76dcdb0deffce840bcc3e321372' },
+            @{ path = (Join-Path $jdk 'bin/javac.exe'); sha = '3f5f77fd45dba28c156bf9710736698a082cce73013602e7ca34949489fae959' },
+            @{ path = (Join-Path $sdk 'platforms/android-33/android.jar'); sha = 'fd628aa21321859a9035c6aae4b084b7d3fdb3f230be5cd5ec76541e32f7c963' },
+            @{ path = (Join-Path $sdk 'build-tools/36.0.0/lib/d8.jar'); sha = '4097ff9c46c185c6e7214da7fe9b1befb5adeea5cc9ca349270e0249904f9240' }
+          )
+          foreach ($check in $checks) {
+            if (-not (Test-Path -LiteralPath $check.path -PathType Leaf)) { throw 'Missing previously observed tool' }
+            if ((Get-FileHash -LiteralPath $check.path -Algorithm SHA256).Hash.ToLowerInvariant() -ne $check.sha) { throw 'Host tool identity changed: re-inventory required' }
+          }
+          "JAVA_HOME=$jdk" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          (Join-Path $jdk 'bin') | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          & $java -version
+          if ($LASTEXITCODE -ne 0) { throw 'Java version smoke failed' }
+      - name: Provision exact Python candidate (isolated runner only)
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: '3.10.11'
+          architecture: x64
+          check-latest: false
+      - name: Verify Python and checksum-pinned Gradle distribution
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $python = (Get-Command python.exe -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
+          $version = & $python -I -S -c 'import sys; print(".".join(map(str, sys.version_info[:3])))'
+          if ($LASTEXITCODE -ne 0 -or $version -ne '3.10.11') { throw 'Python version mismatch' }
+          $root = Join-Path $env:RUNNER_TEMP 'ffbe-toolchain-smoke'
+          if (Test-Path -LiteralPath $root) { throw 'Disposable directory already exists' }
+          New-Item -ItemType Directory -Path $root | Out-Null
+          $zip = Join-Path $root 'gradle-7.6.4-bin.zip'
+          $expected = 'bed1da33cca0f557ab13691c77f38bb67388119e4794d113e051039b80af9bb1'
+          Invoke-WebRequest -Uri 'https://services.gradle.org/distributions/gradle-7.6.4-bin.zip' -OutFile $zip -TimeoutSec 180
+          $actual = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actual -ne $expected) { throw 'Gradle archive SHA-256 mismatch' }
+          Expand-Archive -LiteralPath $zip -DestinationPath $root
+          $gradle = Join-Path $root 'gradle-7.6.4/bin/gradle.bat'
+          $env:GRADLE_USER_HOME = Join-Path $root 'gradle-home'
+          Set-Location -LiteralPath $root
+          $result = & $gradle --no-daemon --offline --version
+          if ($LASTEXITCODE -ne 0 -or -not ($result -match '^Gradle 7\.6\.4\s*$')) { throw 'Gradle version smoke failed' }
+          $result | Write-Host
+          [ordered]@{
+            status = 'TOOL_SMOKE_ONLY_NOT_BUILD_APPROVAL'
+            workflow_commit = $env:GITHUB_SHA
+            image_version = $env:ImageVersion
+            python_version = $version
+            python_path = $python
+            python_sha256 = (Get-FileHash -LiteralPath $python -Algorithm SHA256).Hash.ToLowerInvariant()
+            python_provenance = 'Official setup-python candidate; release asset digest unavailable; not original tool identity'
+            gradle_zip_sha256 = $actual
+            java_home = $env:JAVA_HOME
+            real_runtime_approval = $false
+            automatic_installer_approval = $false
+            original_frida_compiler = 'HOLD'
+          } | ConvertTo-Json -Depth 4
+      - name: Build synthetic Android and Python dependency fixture only
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = Join-Path $env:RUNNER_TEMP 'ffbe-toolchain-smoke'
+          $project = Join-Path $root 'synthetic-android'
+          if (Test-Path -LiteralPath $project) { throw 'Fixture directory already exists' }
+          $gradle = Join-Path $root 'gradle-7.6.4/bin/gradle.bat'
+          $env:GRADLE_USER_HOME = Join-Path $root 'gradle-home'
+          $python = (Get-Command python.exe -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
+          if ((Get-FileHash -LiteralPath $python -Algorithm SHA256).Hash.ToLowerInvariant() -ne '3cce33d75d6fdae4e004d0bdf149320b3147482a9caf370079dcb9c191a1b260') { throw 'Python candidate drift' }
+          New-Item -ItemType Directory -Path (Join-Path $project 'src/main/python') | Out-Null
+          New-Item -ItemType Directory -Path (Join-Path $project 'src/main/java/org/ffbe/lab/synthetic') | Out-Null
+          @'
+          pluginManagement {
+              repositories { google(); mavenCentral(); gradlePluginPortal() }
+          }
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories { google(); mavenCentral() }
+          }
+          rootProject.name = 'SyntheticDependencyFixture'
+          '@ | Set-Content -LiteralPath (Join-Path $project 'settings.gradle') -Encoding utf8NoBOM
+          @'
+          plugins {
+              id 'com.android.application' version '7.4.2'
+              id 'com.chaquo.python' version '16.1.0'
+          }
+          android {
+              namespace 'org.ffbe.lab.synthetic'
+              compileSdk 33
+              buildToolsVersion '36.0.0'
+              defaultConfig {
+                  applicationId 'org.ffbe.lab.synthetic'
+                  minSdk 24
+                  targetSdk 33
+                  versionCode 1
+                  versionName '1'
+                  ndk { abiFilters 'arm64-v8a' }
+              }
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_11
+                  targetCompatibility JavaVersion.VERSION_11
+              }
+          }
+          chaquopy {
+              defaultConfig {
+                  version '3.10'
+                  buildPython 'python'
+                  pip {
+                      install 'PyYAML==6.0.1'
+                      install 'cryptography==42.0.8'
+                  }
+              }
+          }
+          '@ | Set-Content -LiteralPath (Join-Path $project 'build.gradle') -Encoding utf8NoBOM
+          New-Item -ItemType Directory -Path (Join-Path $project 'src/main/res/values') | Out-Null
+          '<resources><string name="fixture_label">Synthetic dependency fixture</string></resources>' | Set-Content -LiteralPath (Join-Path $project 'src/main/res/values/strings.xml') -Encoding utf8NoBOM
+          '<manifest xmlns:android="http://schemas.android.com/apk/res/android"><application android:label="@string/fixture_label" android:allowBackup="false" /></manifest>' | Set-Content -LiteralPath (Join-Path $project 'src/main/AndroidManifest.xml') -Encoding utf8NoBOM
+          'package org.ffbe.lab.synthetic; public final class Fixture { public static int value() { return 42; } }' | Set-Content -LiteralPath (Join-Path $project 'src/main/java/org/ffbe/lab/synthetic/Fixture.java') -Encoding utf8NoBOM
+          'def fixture_value(): return 42' | Set-Content -LiteralPath (Join-Path $project 'src/main/python/fixture.py') -Encoding utf8NoBOM
+          Set-Location -LiteralPath $project
+          & $gradle --no-daemon --console=plain assembleDebug
+          if ($LASTEXITCODE -ne 0) { throw 'Synthetic dependency build failed' }
+          $apk = @(Get-ChildItem -LiteralPath (Join-Path $project 'build/outputs/apk/debug') -Filter '*.apk' -File)
+          if ($apk.Count -ne 1) { throw 'Unexpected fixture APK count' }
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $z = [System.IO.Compression.ZipFile]::OpenRead($apk[0].FullName)
+          try {
+            $names = @($z.Entries | ForEach-Object FullName)
+            if ($names -notcontains 'AndroidManifest.xml' -or $names -notcontains 'classes.dex' -or $names -notcontains 'resources.arsc') { throw 'Missing synthetic APK components' }
+            if (-not ($names -match '^assets/chaquopy/') -or -not ($names -match '^lib/arm64-v8a/')) { throw 'Missing Chaquopy ARM64 payload' }
+            if ($names -match '^lib/(?!arm64-v8a/)') { throw 'Unexpected ABI' }
+            [ordered]@{
+              status = 'SYNTHETIC_BUILD_ONLY_NOT_GAME_APPROVAL'
+              workflow_commit = $env:GITHUB_SHA
+              apk_bytes = $apk[0].Length
+              apk_sha256 = (Get-FileHash -LiteralPath $apk[0].FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+              archive_entries = $names.Count
+              agp = '7.4.2'
+              chaquopy = '16.1.0'
+              python = '3.10'
+              pyyaml = '6.0.1'
+              cryptography = '42.0.8'
+              real_runtime_approval = $false
+              automatic_installer_approval = $false
+            } | ConvertTo-Json -Depth 4
+          } finally { $z.Dispose() }
+
+      - name: Inspect synthetic Python payload and test packaging round trip
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = Join-Path $env:RUNNER_TEMP 'ffbe-toolchain-smoke'
+          $project = Join-Path $root 'synthetic-android'
+          $apk = @(Get-ChildItem -LiteralPath (Join-Path $project 'build/outputs/apk/debug') -Filter '*.apk' -File)
+          if ($apk.Count -ne 1) { throw 'Unexpected synthetic APK count' }
+          $python = (Get-Command python.exe -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
+          $java = Join-Path $env:JAVA_HOME 'bin/java.exe'
+          $inspect = Join-Path $root 'inspect_fixture.py'
+          @'
+          import io, json, pathlib, re, sys, zipfile
+
+          def inspect_apk(path):
+              entries = []
+              with zipfile.ZipFile(path) as apk:
+                  for item in apk.infolist():
+                      if item.filename.startswith('assets/chaquopy/') and item.filename.endswith(('.imy', '.zip')):
+                          data = apk.read(item)
+                          if not zipfile.is_zipfile(io.BytesIO(data)):
+                              continue
+                          with zipfile.ZipFile(io.BytesIO(data)) as nested:
+                              for member in nested.infolist():
+                                  name = member.filename
+                                  if re.search(r'(^|/)yaml/', name, re.I) or re.search(r'(^|/)(?:_yaml|_cffi_backend)', name, re.I) or re.search(r'(^|/)cryptography/', name, re.I):
+                                      if member.is_dir():
+                                          continue
+                                      with nested.open(member) as f:
+                                          header = f.read(64)
+                                      entries.append((item.filename, name, header))
+              yaml_files = [(a,n,h) for a,n,h in entries if re.search(r'(^|/)yaml/',n,re.I)]
+              yaml_init = [n for a,n,h in yaml_files if re.search(r'(^|/)yaml/(?:__pycache__/)?__init__(?:\.cpython-[^/]+)?\.pyc?$',n)]
+              crypto_files = [(a,n,h) for a,n,h in entries if re.search(r'(^|/)cryptography/',n,re.I)]
+              assert yaml_init, 'No packaged yaml Python initializer found'
+              assert crypto_files, 'No packaged cryptography files found'
+              native = []
+              for a,n,h in entries:
+                  if n.lower().endswith(('.pyd','.dll','.dylib')) or h[:2] == b'MZ':
+                      raise AssertionError('Foreign platform payload: '+n)
+                  if n.lower().endswith('.so') or h[:4] == b'\x7fELF':
+                      if not (len(h)>=20 and h[:6]==b'\x7fELF\x02\x01' and int.from_bytes(h[18:20],'little')==183):
+                          raise AssertionError('Non-AArch64 ELF: '+n)
+                      native.append([a,n])
+              return {'yaml_file_count':len(yaml_files),'yaml_init':yaml_init,'cryptography_file_count':len(crypto_files),'arm64_native_members':native,'status':'ARCHIVE_ONLY_NOT_ANDROID_IMPORT_PROOF'}
+
+          if __name__ == '__main__':
+              print(json.dumps(inspect_apk(pathlib.Path(sys.argv[1])),indent=2))
+
+          '@ | Set-Content -LiteralPath $inspect -Encoding utf8NoBOM
+          & $python -I -S $inspect $apk[0].FullName
+          if ($LASTEXITCODE -ne 0) { throw 'Synthetic Python payload inspection failed' }
+          # Independent public tool downloads, authenticated before use.
+          $apktool = Join-Path $root 'apktool_3.0.3.jar'
+          $gadget = Join-Path $root 'frida-gadget-17.24.3-android-arm64.so.xz'
+          Invoke-WebRequest -Uri 'https://github.com/iBotPeaches/Apktool/releases/download/v3.0.3/apktool_3.0.3.jar' -OutFile $apktool -TimeoutSec 180
+          Invoke-WebRequest -Uri 'https://github.com/frida/frida/releases/download/17.24.3/frida-gadget-17.24.3-android-arm64.so.xz' -OutFile $gadget -TimeoutSec 180
+          if ((Get-FileHash -LiteralPath $apktool -Algorithm SHA256).Hash.ToLowerInvariant() -ne 'dbf930b076c6b9be08d57c449cacefc3bdd6b71ebd59b3066fc0e1f5b14f9423') { throw 'Apktool identity mismatch' }
+          if ((Get-FileHash -LiteralPath $gadget -Algorithm SHA256).Hash.ToLowerInvariant() -ne 'c5b86db3569d06769da2b29a80c7a275422c3bb292bd7881ea30566fd2161948') { throw 'Gadget archive identity mismatch' }
+          & $python -I -S -c 'import lzma,sys,hashlib; b=lzma.open(sys.argv[1],"rb").read(67108865); assert len(b)<=67108864 and b[:6]==bytes.fromhex("7f454c460201") and int.from_bytes(b[18:20],"little")==183; print("Gadget ARM64 bytes",len(b),"sha256",hashlib.sha256(b).hexdigest())' $gadget
+          if ($LASTEXITCODE -ne 0) { throw 'Gadget archive verification failed' }
+          & $java -jar $apktool --version
+          if ($LASTEXITCODE -ne 0) { throw 'Apktool version invocation failed' }
+          $framework = Join-Path $root 'apktool-framework'
+          $decoded = Join-Path $root 'decoded-synthetic'
+          $unsigned = Join-Path $root 'rebuilt-unsigned.apk'
+          $aligned = Join-Path $root 'rebuilt-aligned.apk'
+          $signed = Join-Path $root 'rebuilt-signed.apk'
+          New-Item -ItemType Directory -Path $framework | Out-Null
+          & $java -jar $apktool d -f -p $framework -o $decoded $apk[0].FullName
+          if ($LASTEXITCODE -ne 0) { throw 'Synthetic Apktool decode failed' }
+          & $java -jar $apktool b $decoded -p $framework -o $unsigned
+          if ($LASTEXITCODE -ne 0) { throw 'Synthetic Apktool rebuild failed' }
+          $bt = Join-Path $env:ANDROID_HOME 'build-tools/36.0.0'
+          $zipalign = Join-Path $bt 'zipalign.exe'
+          $apksigner = Join-Path $bt 'apksigner.bat'
+          foreach ($check in @(@{path=$zipalign;sha='c503c7da88bd4f6cddbcc8d3febd41e1e5022a525147f05f8caf4602353409c0'},@{path=$apksigner;sha='549dd0028b0314a5112d6b56e2de7800e713f297da4508b513a735546e52ce38'},@{path=(Join-Path $bt 'lib/apksigner.jar');sha='3716d9311e55d2b0918a2fd9d54ba9e406c5f6abeea700b287f11259bc163dec'})) {
+            if ((Get-FileHash -LiteralPath $check.path -Algorithm SHA256).Hash.ToLowerInvariant() -ne $check.sha) { throw 'Android packaging tool drift' }
+          }
+          & $zipalign -P 16 -f 4 $unsigned $aligned
+          if ($LASTEXITCODE -ne 0) { throw 'Synthetic alignment failed' }
+          # Fresh throwaway test key. Never read any owner or release signing key.
+          $key = Join-Path $root 'fixture-only.p12'
+          & (Join-Path $env:JAVA_HOME 'bin/keytool.exe') -genkeypair -alias fixture -keyalg RSA -keysize 2048 -validity 2 -storetype PKCS12 -keystore $key -storepass fixture-only -keypass fixture-only -dname 'CN=Disposable Synthetic Fixture' -noprompt
+          if ($LASTEXITCODE -ne 0) { throw 'Synthetic key generation failed' }
+          & $apksigner sign --ks $key --ks-key-alias fixture --ks-pass pass:fixture-only --key-pass pass:fixture-only --out $signed $aligned
+          if ($LASTEXITCODE -ne 0) { throw 'Synthetic signing failed' }
+          & $apksigner verify --verbose $signed
+          if ($LASTEXITCODE -ne 0) { throw 'Synthetic signature verification failed' }
+          & $zipalign -c -P 16 4 $signed
+          if ($LASTEXITCODE -ne 0) { throw 'Synthetic final alignment failed' }
+          & $python -I -S $inspect $signed
+          if ($LASTEXITCODE -ne 0) { throw 'Rebuilt Python payload inspection failed' }
+          # Require exact preservation of the Python and native payload bytes across packaging.
+          & $python -I -S -c 'import sys,zipfile,hashlib; a,b=[zipfile.ZipFile(p) for p in sys.argv[1:]]; pick=lambda z:{n:hashlib.sha256(z.read(n)).hexdigest() for n in z.namelist() if n.startswith(("assets/chaquopy/","lib/arm64-v8a/")) and not n.endswith("/")}; x,y=pick(a),pick(b); assert x and x==y, "Python/native payload changed"; print("Preserved payload entries",len(x))' $apk[0].FullName $signed
+          if ($LASTEXITCODE -ne 0) { throw 'Synthetic payload preservation failed' }
+          [ordered]@{status='SYNTHETIC_PACKAGING_ONLY';workflow_commit=$env:GITHUB_SHA;apktool_sha256=(Get-FileHash -LiteralPath $apktool -Algorithm SHA256).Hash.ToLowerInvariant();gadget_xz_sha256=(Get-FileHash -LiteralPath $gadget -Algorithm SHA256).Hash.ToLowerInvariant();signed_fixture_sha256=(Get-FileHash -LiteralPath $signed -Algorithm SHA256).Hash.ToLowerInvariant();real_runtime_approval=$false;automatic_installer_approval=$false} | ConvertTo-Json
