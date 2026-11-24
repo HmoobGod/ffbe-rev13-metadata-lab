@@ -72,9 +72,14 @@ jobs:
           test -z "$(ip route show)"
           test -z "$(ip -6 route show default)"
           ip -br addr
-          export ADB_SERVER_SOCKET=tcp:127.0.0.1:5037
+          export HOME="$PROBE_ROOT/home"
+          mkdir -m 700 "$HOME"
+          export ANDROID_I_WANT_MY_TCG=yes
+          unset ADB_SERVER_SOCKET
           adb="$ANDROID_SDK_ROOT/platform-tools/adb"
           emulator="$ANDROID_SDK_ROOT/emulator/emulator"
+          "$adb" -P 5037 start-server
+          export ADB_SERVER_SOCKET=tcp:127.0.0.1:5037
           "$emulator" @stage5_empty -accel off -no-window -gpu swiftshader_indirect -no-audio -no-snapshot -wipe-data -no-boot-anim -no-metrics -port 5554 -memory 1536 -cores 2 > "$PROBE_ROOT/emulator.log" 2>&1 &
           pid=$!
           trap 'kill "$pid" 2>/dev/null || true; "$adb" kill-server || true; tail -80 "$PROBE_ROOT/emulator.log"' EXIT
