@@ -30,7 +30,7 @@ jobs:
           c=a[0].find('complete')
           name=c.findtext('url')
           digest=c.findtext('checksum')
-          assert re.fullmatch(r'build-tools_[A-Za-z0-9._-]+-linux\.zip',name),name
+          assert name == 'build-tools_r36_linux.zip',name
           assert re.fullmatch(r'[0-9a-f]{40}|[0-9a-f]{64}',digest),digest
           data={'package':'build-tools;36.0.0','metadata_url':'https://dl.google.com/android/repository/repository2-1.xml','url':'https://dl.google.com/android/repository/'+name,'archive_size':int(c.findtext('size')),'archive_checksum':digest,'checksum_algorithm':'sha1' if len(digest)==40 else 'sha256'}
           open('origin.json','w').write(json.dumps(data,indent=2)+'\n')
