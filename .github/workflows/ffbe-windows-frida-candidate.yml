@@ -1,0 +1,108 @@
+name: FFBE game-free Frida compiler candidate smoke
+on:
+  workflow_dispatch:
+permissions: {}
+concurrency:
+  group: ffbe-frida-candidate
+  cancel-in-progress: false
+jobs:
+  candidate:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: windows-2022
+    timeout-minutes: 20
+    steps:
+      - name: Resolve exact candidate packages and test synthetic bundle formats
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = Join-Path $env:RUNNER_TEMP 'ffbe-frida-candidate'
+          if (Test-Path -LiteralPath $root) { throw 'Fixture directory already exists' }
+          New-Item -ItemType Directory -Path $root | Out-Null
+          Set-Location -LiteralPath $root
+          $node = (Get-Command node.exe -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
+          $npm = (Get-Command npm.cmd -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
+          $env:npm_config_registry = 'https://registry.npmjs.org/'
+          $env:npm_config_cache = Join-Path $root 'npm-cache'
+          $env:npm_config_audit = 'false'
+          $env:npm_config_fund = 'false'
+          $env:npm_config_fetch_retries = '1'
+          $env:npm_config_fetch_timeout = '60000'
+          $nodeVersion = & $node --version
+          if ($LASTEXITCODE -ne 0) { throw 'Node version failed' }
+          $npmVersion = & $npm --version
+          if ($LASTEXITCODE -ne 0) { throw 'npm version failed' }
+          # Newly selected candidate, NOT the original compiler identity.
+          '{"name":"ffbe-synthetic-compiler-fixture","version":"1.0.0","private":true,"type":"module","dependencies":{"frida-compile":"19.1.0","frida":"17.24.3"},"overrides":{"frida":"17.24.3"}}' | Set-Content -LiteralPath 'package.json' -Encoding utf8NoBOM
+          & $npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+          if ($LASTEXITCODE -ne 0) { throw 'Candidate lock resolution failed' }
+          $lock = Get-Content -LiteralPath 'package-lock.json' -Raw | ConvertFrom-Json -AsHashtable
+          if ($lock.lockfileVersion -ne 3) { throw 'Unexpected lockfile format' }
+          foreach ($entry in $lock.packages.GetEnumerator()) {
+            if ($entry.Key -eq '') { continue }
+            if ($entry.Value.resolved -notmatch '^https://registry\.npmjs\.org/' -or $entry.Value.integrity -notmatch '^sha(512|384|256|1)-[A-Za-z0-9+/=]+$') { throw 'Unexpected package source or missing integrity' }
+          }
+          if ($lock.packages['node_modules/frida-compile'].version -ne '19.1.0' -or $lock.packages['node_modules/frida'].version -ne '17.24.3') { throw 'Candidate version drift' }
+          $lockHash = (Get-FileHash -LiteralPath 'package-lock.json' -Algorithm SHA256).Hash.ToLowerInvariant()
+          # Only public tool dependencies; the official Frida Node binding may need its install script.
+          & $npm ci --no-audit --no-fund
+          if ($LASTEXITCODE -ne 0) { throw 'Candidate installation failed' }
+          if ((Get-FileHash -LiteralPath 'package-lock.json' -Algorithm SHA256).Hash.ToLowerInvariant() -ne $lockHash) { throw 'Lockfile drift' }
+          $cli = Join-Path $root 'node_modules/frida-compile/dist/cli.js'
+          if (-not (Test-Path -LiteralPath $cli -PathType Leaf)) { throw 'Candidate CLI missing' }
+          $help = & $node $cli --help
+          if ($LASTEXITCODE -ne 0 -or -not ($help -match '--type-check') -or -not ($help -match '--bundle-format')) { throw 'Candidate CLI incompatible' }
+          'export function fixtureValue(x) { return x + 41; }' | Set-Content -LiteralPath 'helper.js' -Encoding utf8NoBOM
+          '{"n":1}' | Set-Content -LiteralPath 'value.json' -Encoding utf8NoBOM
+          'import { fixtureValue } from "./helper.js"; import data from "./value.json"; globalThis.ffbeSyntheticFixture = fixtureValue(data.n);' | Set-Content -LiteralPath 'entry.js' -Encoding utf8NoBOM
+          # Check the original CLI options unchanged, plus a distinct IIFE candidate.
+          $results = @()
+          foreach ($mode in @('default','iife')) {
+            $output = Join-Path $root ("bundle-$mode.js")
+            $argsList = @($cli, 'entry.js', '-o', $output, '-S', '-c', '-T', 'none')
+            if ($mode -eq 'iife') { $argsList += @('-B','iife') }
+            & $node @argsList
+            $exit = $LASTEXITCODE
+            if ($exit -ne 0 -or -not (Test-Path -LiteralPath $output -PathType Leaf)) {
+              $results += @{ mode = $mode; compile_exit = $exit; output_present = $false }
+              continue
+            }
+            $bytes = [IO.File]::ReadAllBytes($output)
+            if ($bytes.Length -eq 0 -or $bytes.Length -gt 1048576) { throw 'Unexpected synthetic bundle size' }
+            $body = [Text.UTF8Encoding]::new($false,$true).GetString($bytes)
+            # Mirror only the existing source's leading-token recognition; do not alter or execute output.
+            $tokens = @('function ','(','!','var ','let ','const ','Object.defineProperty','"use strict"',"'use strict'",'//','/*')
+            $lines = @($body -split "`n")
+            $index = -1
+            for ($i=0; $i -lt $lines.Count; $i++) {
+              $trimmed = $lines[$i].TrimStart()
+              foreach ($token in $tokens) { if ($trimmed.StartsWith($token,[StringComparison]::Ordinal)) { $index = $i; break } }
+              if ($index -ge 0) { break }
+            }
+            $results += @{
+              mode = $mode; compile_exit = $exit; output_present = $true; bytes = $bytes.Length
+              sha256 = (Get-FileHash -LiteralPath $output -Algorithm SHA256).Hash.ToLowerInvariant()
+              package_marker = $body.StartsWith([char]::ConvertFromUtf32(0x1F4E6),[StringComparison]::Ordinal)
+              original_first_body_line = $index; original_would_strip = ($index -gt 0)
+              original_would_reject = ($index -lt 0 -or $body.Contains('frida-java-bridge'))
+              fixture_marker_present = $body.Contains('ffbeSyntheticFixture')
+            }
+          }
+          [ordered]@{
+            status = 'CANDIDATE_SYNTHETIC_ONLY_NOT_GAME_APPROVAL'
+            workflow_commit = $env:GITHUB_SHA; image_version = $env:ImageVersion
+            node_version = $nodeVersion; npm_version = $npmVersion
+            node_sha256 = (Get-FileHash -LiteralPath $node -Algorithm SHA256).Hash.ToLowerInvariant()
+            npm_sha256 = (Get-FileHash -LiteralPath $npm -Algorithm SHA256).Hash.ToLowerInvariant()
+            compiler_version = '19.1.0'; frida_node_version = '17.24.3'
+            compiler_cli_sha256 = (Get-FileHash -LiteralPath $cli -Algorithm SHA256).Hash.ToLowerInvariant()
+            generated_lock_sha256 = $lockHash; lock_entries = $lock.packages.Count
+            compiler_integrity = $lock.packages['node_modules/frida-compile'].integrity
+            frida_integrity = $lock.packages['node_modules/frida'].integrity
+            results = $results; original_compiler_identity = 'UNKNOWN'
+            real_runtime_approval = $false; automatic_installer_approval = $false
+          } | ConvertTo-Json -Depth 6
+          # Emit the generated public tool lock for reproducibility; contains no game paths or secrets.
+          Write-Host 'BEGIN_PUBLIC_TOOL_LOCK'
+          Get-Content -LiteralPath 'package-lock.json' -Raw | Write-Host
+          Write-Host 'END_PUBLIC_TOOL_LOCK'
+          if (-not ($results | Where-Object { $_.compile_exit -eq 0 -and $_.output_present -and $_.fixture_marker_present })) { throw 'No usable synthetic compilation output' }
