@@ -23,7 +23,13 @@ jobs:
           adb="$sdk/platform-tools/adb"
           manager="$sdk/cmdline-tools/latest/bin/sdkmanager"
           avd="$sdk/cmdline-tools/latest/bin/avdmanager"
-          test -x "$emu" && test -x "$adb" && test -x "$manager" && test -x "$avd"
+          test -x "$manager"
+          test -x "$avd"
+          if ! test -x "$emu" || ! test -x "$adb"; then
+            timeout 240 "$manager" --sdk_root="$sdk" "emulator" "platform-tools"
+          fi
+          test -x "$emu"
+          test -x "$adb"
           uname -m
           free -h
           ls -l /dev/kvm || true
