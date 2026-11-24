@@ -1,4 +1,4 @@
-name: Stage5 game-free Android software host probe
+name: Stage5 game-free Android ARM64 JNI execution
 on:
   push:
     branches: [stage5-android-host-probe-20261124]
@@ -8,15 +8,93 @@ jobs:
   probe:
     if: github.event_name == 'push' && github.ref == 'refs/heads/stage5-android-host-probe-20261124' && github.repository == 'HmoobGod/ffbe-rev13-metadata-lab'
     runs-on: ubuntu-24.04
-    timeout-minutes: 12
+    timeout-minutes: 20
     steps:
       - name: Inventory and provision public SDK only
         shell: bash
         run: |
           set -euo pipefail
-          echo "No private input, checkout, secret, or APK."
+          echo "No private input, checkout, secret, or FFBE APK. Synthetic fixture only."
           root="$RUNNER_TEMP/stage5-sdk"
           mkdir -m 700 "$root"
+          # Exact prebuilt game-free fixture, not FFBE game code.
+          base64 -d <<'FIXTURE_XZ' | xz -dc > "$root/fixture-signed.apk"
+          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
+          H0XPUwABjyqhQwAAjAjJILHEZ/sCAAAAAARZWg==
+          FIXTURE_XZ
+          test "$(wc -c < "$root/fixture-signed.apk")" -eq 8609
+          echo "f3849b038649e93b08fa47bc06efcbe775f6ddf82a7fae67c21ede1e4cfb2159  $root/fixture-signed.apk" | sha256sum -c -
           test -n "$ANDROID_HOME"
           sdk="$(realpath "$ANDROID_HOME")"
           emu="$sdk/emulator/emulator"
@@ -51,7 +129,7 @@ jobs:
           echo "PROBE_ROOT=$root" >> "$GITHUB_ENV"
           echo "ANDROID_AVD_HOME=$root/avd" >> "$GITHUB_ENV"
           echo "ANDROID_USER_HOME=$root/android" >> "$GITHUB_ENV"
-      - name: Fresh software-only guest boot in disconnected namespace
+      - name: Fresh isolated guest and synthetic ARM64 JNI execution
         shell: bash
         run: |
           set -euo pipefail
@@ -83,15 +161,36 @@ jobs:
           "$emulator" @stage5_empty -accel off -no-window -gpu swiftshader_indirect -no-audio -no-snapshot -wipe-data -no-boot-anim -no-metrics -port 5554 -memory 1536 -cores 2 > "$PROBE_ROOT/emulator.log" 2>&1 &
           pid=$!
           trap 'kill "$pid" 2>/dev/null || true; "$adb" kill-server || true; tail -80 "$PROBE_ROOT/emulator.log"' EXIT
-          for i in $(seq 1 48); do
+          for i in $(seq 1 64); do
             kill -0 "$pid" 2>/dev/null || { echo "emulator exited"; exit 1; }
             if test "$(timeout 8 "$adb" -s emulator-5554 shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 1; then
               "$adb" -s emulator-5554 shell getprop ro.build.version.sdk
               "$adb" -s emulator-5554 shell getprop ro.product.cpu.abilist
               "$adb" -s emulator-5554 shell getprop ro.dalvik.vm.native.bridge
               "$adb" -s emulator-5554 shell pm list packages -3
+              test "$(timeout 30 "$adb" -s emulator-5554 shell getprop ro.build.version.sdk | tr -d '\r')" = 30
+              timeout 30 "$adb" -s emulator-5554 shell getprop ro.product.cpu.abilist | tr -d '\r' | grep -Eq '(^|,)arm64-v8a(,|$)'
+              test "$(timeout 30 "$adb" -s emulator-5554 shell getprop ro.dalvik.vm.native.bridge | tr -d '\r')" = libndk_translation.so
+              test -z "$(timeout 30 "$adb" -s emulator-5554 shell pm list packages -3 | tr -d '\r')"
               echo 'SOFTWARE_BOOT_PASS__EMPTY_GUEST_ONLY'
-              exit 0
+              timeout 90 "$adb" -s emulator-5554 install "$PROBE_ROOT/fixture-signed.apk" | grep -Fx Success
+              timeout 30 "$adb" -s emulator-5554 logcat -c
+              timeout 90 "$adb" -s emulator-5554 shell am start -W -n org.ffbeprobe.arm64/.ProbeActivity
+              for n in $(seq 1 12); do
+                app_pid="$(timeout 20 "$adb" -s emulator-5554 shell pidof org.ffbeprobe.arm64 | tr -d '\r' || true)"
+                if [[ "$app_pid" =~ ^[0-9]+$ ]]; then
+                  timeout 30 "$adb" -s emulator-5554 logcat -d --pid="$app_pid" -s FFBE_ARM64_FIXTURE:I '*:S' > "$PROBE_ROOT/fixture.log"
+                  timeout 30 "$adb" -s emulator-5554 shell dumpsys activity activities > "$PROBE_ROOT/activity.log"
+                  if grep -F 'ARM64_JNI_EXECUTION_PASS_13572468' "$PROBE_ROOT/fixture.log" && grep -E 'mResumedActivity:.*org\.ffbeprobe\.arm64/\.ProbeActivity' "$PROBE_ROOT/activity.log"; then
+                    echo 'SYNTHETIC_ARM64_JNI_RUNTIME_PASS__NO_FFBE_APPROVAL'
+                    timeout 60 "$adb" -s emulator-5554 uninstall org.ffbeprobe.arm64 | grep -Fx Success
+                    exit 0
+                  fi
+                fi
+                sleep 5
+              done
+              echo 'SYNTHETIC_ARM64_JNI_RUNTIME_HOLD'
+              exit 1
             fi
             sleep 5
           done
@@ -100,4 +199,4 @@ jobs:
           EOF
           # Create disconnected network namespace with host privilege, then drop privilege before launching guest.
           runner_user="$(id -un)"
-          sudo timeout 420 unshare --net bash -c 'set -euo pipefail; ip link set lo up; exec runuser -u "$1" -- env ANDROID_SDK_ROOT="$2" ANDROID_HOME="$2" PROBE_ROOT="$3" ANDROID_AVD_HOME="$4" ANDROID_USER_HOME="$5" bash "$3/boot.sh"' _ "$runner_user" "$ANDROID_SDK_ROOT" "$PROBE_ROOT" "$ANDROID_AVD_HOME" "$ANDROID_USER_HOME"
+          sudo timeout 720 unshare --net bash -c 'set -euo pipefail; ip link set lo up; exec runuser -u "$1" -- env ANDROID_SDK_ROOT="$2" ANDROID_HOME="$2" PROBE_ROOT="$3" ANDROID_AVD_HOME="$4" ANDROID_USER_HOME="$5" bash "$3/boot.sh"' _ "$runner_user" "$ANDROID_SDK_ROOT" "$PROBE_ROOT" "$ANDROID_AVD_HOME" "$ANDROID_USER_HOME"
