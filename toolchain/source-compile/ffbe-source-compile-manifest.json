@@ -1,0 +1,1440 @@
+{
+  "schema": 1,
+  "purpose": "Isolated compilation of public FFBE source plus previously approved source-only candidates; no protected APK, ELF, saves, or production data. No runtime permission.",
+  "checkpoint_sha256": "8e96f0952ffd5b2945d456dac334a81d1f8deced7702b84039ca81b4d80ee420",
+  "files": [
+    {
+      "path": "source/exvius/android/TestInitProvider.java",
+      "bytes": 957,
+      "sha256": "3f67e6016d80569f01b8fa2e72d316ea8deb3a99f4bc986263d78d48d49a906c",
+      "git_blob": "d020f5453cf9da7e8bb83a71e959cdc03e951da4",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/exvius/android_build.py",
+      "bytes": 17707,
+      "sha256": "c4e551d0448e8286589047601358a335b4ce60e0ebf64a257d446954b29ad419",
+      "git_blob": "d8bb6dc003f2b10bc87b9edc999ebe21872664d3",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/exvius/android_display.js",
+      "bytes": 35459,
+      "sha256": "b82df0d4a7cb225eef3eeb18cdf414115f0da86743d1d4b6c98f1e2ae1b72aca",
+      "git_blob": "df7a52d79110b2396e1701f349d4c3f44ea53ad8",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/exvius/android_offline.py",
+      "bytes": 29891,
+      "sha256": "428273a6017d4092fc2af552e839811221af67166ede6f46b164734a7a7ac187",
+      "git_blob": "37cb6da242163959a677bb1a66d299cf29da0927",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/exvius/android_test.js",
+      "bytes": 28772,
+      "sha256": "9e56bf9f54f4d7a8cf8265d755f0c2e99a7a90fd8db8f25b857edfd90e3821c7",
+      "git_blob": "0de60a9933ecbf34ef852fb7a23fa556316a0f4a",
+      "public_base": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330",
+        "bytes": 28591,
+        "sha256": "44cc7f64d55fcc2c556b208e339b53c34b4137cb16e267aadfc27acd1506e101",
+        "git_blob": "f4ebf96ef9c181054af9654f1aff5a9cf7fa2921"
+      },
+      "line_edits": [
+        [
+          341,
+          342,
+          "ICAgICAgICAgICAgb25MZWF2ZShyZXN1bHQpIHsgcmV0dXJuOyAvKiBQZXJtYW5lbnQgYWRtaXNzaW9uIEhPTEQ6IHByZXNlcnZlIG9yaWdpbmFsIGxvZ2luIHJlc3VsdC4gKi8gaWYgKHRoaXMudGl0bGUpIHJlc3VsdC5yZXBsYWNlKDEpOyB9DQo="
+        ],
+        [
+          443,
+          443,
+          "ICAgICAgICAgICAgcmV0dXJuOyAvLyBQZXJtYW5lbnQgYWRtaXNzaW9uIEhPTEQ6IGRlbnkgaG9vayBlZmZlY3RzIG9ubHk7IG9yaWdpbmFsIHN0YXJ0R2FtZSBpcyBub3QgYmxvY2tlZC4NCg=="
+        ]
+      ]
+    },
+    {
+      "path": "source/exvius/friends_menu.js",
+      "bytes": 3206,
+      "sha256": "fc63fd385f515adee9c4aaa84628b4bbc251a50a3f09752295dc0ac714d94f72",
+      "git_blob": "03ae7bd7a042f2beb8694793e132aec7771603fb",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/exvius/home_carousel.js",
+      "bytes": 48097,
+      "sha256": "c4124d5d01741e1fb383cbb12e5f0f40ee0f3592adb72281a60ada9b8e05d4f9",
+      "git_blob": "61a780031828af0efea89212ce128fa68179eac3",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/exvius/map_interaction_audit.js",
+      "bytes": 2437,
+      "sha256": "7bfd519e996f197babfb2af22907e1c2a79f81d179bc19f46ff4a159d32d863d",
+      "git_blob": "1e1d084ac9d4f0ec221abdcf0fbbb31208c813ac",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/exvius/menu_assets.js",
+      "bytes": 23868,
+      "sha256": "5967ed6f5df0fcdaef62bda4d500afc7d91c4b7a09edf64621166ff7462e75d3",
+      "git_blob": "2d0cd09330bb1101557281e4dbd2fd05387a1555",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/exvius/mission_repeat.js",
+      "bytes": 2371,
+      "sha256": "857acf8a2339bfc49b563cb03d75187f420b29af10ff8321a01ffbbb51798866",
+      "git_blob": "c72d4eceae1e7ff294f634e58bcd83739cb9e9cb",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/exvius/native_bridge.js",
+      "bytes": 3383,
+      "sha256": "c130c71a3d7f5fe72dcd6b167fc1e37436813c7707dcc932aa829ac6894fbcee",
+      "git_blob": "0c716647ac05d2298cce5f5b21b6182ed5ca2281",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/exvius/raid_menu.js",
+      "bytes": 4606,
+      "sha256": "d5dcc2d544eca7db109304c5e8a0e32cf2fe5ea5caaf5e10b511481115309c78",
+      "git_blob": "7694456132bd4175eca5de3bd7b7209b788f7470",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/exvius/summon_art.js",
+      "bytes": 6051,
+      "sha256": "0df8e22fe65714c7f7b1528e78e59e398d3ec981d68e4659c2a92303ce5197f5",
+      "git_blob": "7f27f767f0c8f7d90e161f97f32db404bd8259ab",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/exvius/summon_menu.js",
+      "bytes": 60540,
+      "sha256": "520adf85f761bc8a3ccda8798c37386fc0fbbaf4b22616393ab2d68927c1d0f7",
+      "git_blob": "ab0ced9aa3df321fb7cb34b81fd810158d23bff6",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/exvius/title_menu.js",
+      "bytes": 6336,
+      "sha256": "e10224b9461e723d15be501b03df650b234a096b6b56168d9bd7d0b3fd6197b0",
+      "git_blob": "e1021ba5bfa143e708a6e7ee985ebdf4b614c5c5",
+      "public_base": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330",
+        "bytes": 6140,
+        "sha256": "7de6886ed1209aac1ae6ebfd31424f148b932ee9eafceeeccf6cf476f839c8f9",
+        "git_blob": "53405cc19064cb3980da2106c401661e551c1d10"
+      },
+      "line_edits": [
+        [
+          77,
+          79,
+          "ICAvLyBOZXcgR2FtZSByZXRhaW5zIGl0cyBvcmlnaW5hbCBhZG1pdHRlZCBmYWxsdGhyb3VnaC4gQ29udGludWUgaXMgaGVsZDoNCiAgLy8gZG8gbm90IGZvcmNlIHRoZSBvcmlnaW5hbCBmdWxsLXNjcmVlbiBUYXAgdG8gU3RhcnQgd2hpbGUgYWRtaXNzaW9uIGlzIGRlbmllZC4NCg=="
+        ],
+        [
+          90,
+          91,
+          "ICAgICAgICAvLyBQZXJtYW5lbnQgc291cmNlLW9ubHkgSE9MRDogbm8gc2lkZS1lZmZlY3QtZnJlZSBwdWJsaWMgSmF2YSBhZG1pc3Npb24gcXVlcnkuDQogICAgICAgIC8vIFByZXNlcnZlIHRoZSBvcmlnaW5hbCBoaXQ7IG5ldmVyIGZvcmNlIFRhcCB0byBTdGFydCBmcm9tIENvbnRpbnVlLg0KICAgICAgICBub3RlKCdMT0NBTF9USVRMRV9DT05USU5VRV9IT0xEJyk7DQogICAgICAgIHJldHVybjsNCg=="
+        ]
+      ]
+    },
+    {
+      "path": "source/memorial/android/build.gradle",
+      "bytes": 897,
+      "sha256": "c508affce9ee167aaee555aa33d0e3531815963594e50f1eacb1a3899479d01f",
+      "git_blob": "80d5de18df31fdff320905800a19c4f17021a3f4",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/memorial/android/settings.gradle",
+      "bytes": 320,
+      "sha256": "48114a4cc4d024993920f66b9e35415a1188b321c628485517d3ec09783bfddf",
+      "git_blob": "29fed7c53ae558268ff307d1f7a647fe2a859f93",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/memorial/android/src/main/AndroidManifest.xml",
+      "bytes": 395,
+      "sha256": "d8e639a1bb94c3544877de39fc7d3919665bdf054bf3fc0d3d5da1d3ae5d5d97",
+      "git_blob": "2e6b177bb9092d7ef779a3e00702e14f45c9b5c7",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/memorial/android/src/main/java/com/exvius/local/BootstrapAdmissionGate.java",
+      "bytes": 11693,
+      "sha256": "8a6473a502a2d9a24f63be86220d39bd5e1feb679d2f90bcba52035521eb6772",
+      "git_blob": "07f9b504683dfc4f644b8d17b552f4582ff6453e",
+      "new_authored_source": "cGFja2FnZSBjb20uZXh2aXVzLmxvY2FsOwoKaW1wb3J0IGFuZHJvaWQuY29udGVudC5Db250ZXh0OwppbXBvcnQgamF2YS5pby5GaWxlOwppbXBvcnQgamF2YS5pby5JT0V4Y2VwdGlvbjsKaW1wb3J0IGFuZHJvaWQuc3lzdGVtLkVycm5vRXhjZXB0aW9uOwppbXBvcnQgYW5kcm9pZC5zeXN0ZW0uT3M7CmltcG9ydCBhbmRyb2lkLnN5c3RlbS5Pc0NvbnN0YW50czsKaW1wb3J0IGFuZHJvaWQuc3lzdGVtLlN0cnVjdFN0YXQ7CgovKioKICogRElTUE9TQUJMRSBTT1VSQ0UtT05MWSBERVNJR04sIE5PVCBGT1IgQVBQTElDQVRJT04gVVNFLgogKgogKiBBIGNvbnNlcnZhdGl2ZSBtZXRhZGF0YS1vbmx5IHByZS1jaGVjayBiZWZvcmUgU2F2ZVNsb3RzLmluaXRpYWxpemUoKS4KICogSXQgTkVWRVIgYXV0aG9yaXplcyBydW50aW1lIHN0YXJ0dXA6IEphdmEgY2Fubm90IHlldCBhdHRlc3QgdGhlIGVhcmxpZXIgQW5kcm9pZAogKiBwcm92aWRlciBjaGFpbiwgUHl0aG9uIGFyZ3Yvc3lzLm1vZHVsZXMsIHVwZGF0ZSB3b3JrZXJzIG9yIHdyaXRlIGNvbmZpbmVtZW50LgogKiBObyBkaXJlY3RvcnkgY3JlYXRpb24sIGZpbGUgY29udGVudCByZWFkaW5nLCBzYXZlIHJlY292ZXJ5IG9yIG5ldHdvcmsgYWNjZXNzLgogKi8KZmluYWwgY2xhc3MgQm9vdHN0cmFwQWRtaXNzaW9uR2F0ZSB7CiAgICBwcml2YXRlIHN0YXRpYyBmaW5hbCBTdHJpbmcgVU5WRVJJRklFRCA9CiAgICAgICAgIkZGQkUgU09VUkNFLU9OTFkgSE9MRDogcHJvY2VzcyBhcmd2LCBQeXRob24gcHJlbG9hZHMsIGVhcmxpZXIgcHJvdmlkZXJzLCAiICsKICAgICAgICAic2F2ZS93cml0ZSBpc29sYXRpb24gYW5kIGJhY2tncm91bmQgdXBkYXRlcyBhcmUgbm90IGluZGVwZW5kZW50bHkgdmVyaWZpZWQiOwoKICAgIHByaXZhdGUgQm9vdHN0cmFwQWRtaXNzaW9uR2F0ZSgpIHt9CgogICAgc3RhdGljIHZvaWQgcmVxdWlyZUJlZm9yZVNhdmVTbG90cyhDb250ZXh0IGNvbnRleHQpIHsKICAgICAgICBpZiAoY29udGV4dCA9PSBudWxsKSB0aHJvdyBuZXcgSWxsZWdhbFN0YXRlRXhjZXB0aW9uKCJGRkJFIEhPTEQ6IG1pc3NpbmcgQW5kcm9pZCBjb250ZXh0Iik7CiAgICAgICAgdHJ5IHsKICAgICAgICAgICAgRmlsZSBmaWxlcyA9IGNvbnRleHQuZ2V0RmlsZXNEaXIoKTsKICAgICAgICAgICAgRmlsZSB0cnVzdGVkID0gdHJ1c3RlZEZpbGVzRGlyZWN0b3J5KGZpbGVzKTsKICAgICAgICAgICAgRmlsZSB3cml0YWJsZSA9IG5ldyBGaWxlKGZpbGVzLCAiZXh2aXVzIik7CiAgICAgICAgICAgIEZpbGUgc3RhdGUgPSBuZXcgRmlsZSh3cml0YWJsZSwgInN0YXRlIik7CiAgICAgICAgICAgIEZpbGUgc2xvdHMgPSBuZXcgRmlsZShzdGF0ZSwgInNsb3RzIik7CiAgICAgICAgICAgIEZpbGUgaW5zdGFsbCA9IG5ldyBGaWxlKHdyaXRhYmxlLCAiZGF0YSIpOwogICAgICAgICAgICBGaWxlIHN0YXRpY1Jvb3QgPSBuZXcgRmlsZShpbnN0YWxsLCAic3RhdGljIik7CiAgICAgICAgICAgIEZpbGUgbmF0aXZlUm9vdCA9IGZpbGVzOwoKICAgICAgICAgICAgLy8gUmVxdWlyZSB0aGUgaW50ZW5kZWQgcGF0aHMgdG8gZXhpc3QgYW5kIHRvIGNvbnRhaW4gTk8gc3ltbGluayBzZWdtZW50cy4KICAgICAgICAgICAgcmVxdWlyZURpcmVjdG9yeSh0cnVzdGVkLCB3cml0YWJsZSk7CiAgICAgICAgICAgIHJlcXVpcmVEaXJlY3RvcnkodHJ1c3RlZCwgc3RhdGUpOwogICAgICAgICAgICByZXF1aXJlRGlyZWN0b3J5KHRydXN0ZWQsIHNsb3RzKTsKICAgICAgICAgICAgcmVxdWlyZURpcmVjdG9yeSh0cnVzdGVkLCBpbnN0YWxsKTsKICAgICAgICAgICAgcmVxdWlyZURpcmVjdG9yeSh0cnVzdGVkLCBzdGF0aWNSb290KTsKICAgICAgICAgICAgcmVxdWlyZURpcmVjdG9yeSh0cnVzdGVkLCBuZXcgRmlsZShuYXRpdmVSb290LCAibXN0IikpOwogICAgICAgICAgICByZXF1aXJlRGlyZWN0b3J5KHRydXN0ZWQsIG5ldyBGaWxlKG5hdGl2ZVJvb3QsICJjb21tb25fbGFuZyIpKTsKCiAgICAgICAgICAgIC8vIEV4aXN0aW5nIHZhbGlkIGRhdGEgaXMgYSByZXF1aXJlbWVudDsgbmV2ZXIgY3JlYXRlIGEgY2F0YWxvZ3VlIGhlcmUuCiAgICAgICAgICAgIC8vIEZ1bGwgY29udGVudHMvc2xvdC1JRCB2YWxpZGF0aW9uIGlzIE5PVCBwcm92ZW4gYnkgdGhpcyBtZXRhZGF0YSBjaGVjay4KICAgICAgICAgICAgcmVxdWlyZVJlZ3VsYXJGaWxlKHRydXN0ZWQsIG5ldyBGaWxlKHNsb3RzLCAiaW5kZXguanNvbiIpKTsKICAgICAgICAgICAgcmVxdWlyZVJlZ3VsYXJGaWxlKHRydXN0ZWQsIG5ldyBGaWxlKGluc3RhbGwsICJpbnN0YWxsZWQuanNvbiIpKTsKCiAgICAgICAgICAgIC8vIEFueSBwZW5kaW5nIHRyYW5zYWN0aW9uIG11c3QgYmUgcmVzb2x2ZWQgb3V0c2lkZSB0aGUgdHJpYWwsIG5ldmVyIGhlcmUuCiAgICAgICAgICAgIHJlcXVpcmVBYnNlbnQodHJ1c3RlZCwgbmV3IEZpbGUoc2xvdHMsICJkZWxldGUuanNvbiIpKTsKICAgICAgICAgICAgcmVxdWlyZUFic2VudCh0cnVzdGVkLCBuZXcgRmlsZShuZXcgRmlsZShzbG90cywgImltcG9ydCIpLCAiam91cm5hbC5qc29uIikpOwogICAgICAgICAgICByZXF1aXJlQWJzZW50KHRydXN0ZWQsIG5ldyBGaWxlKGluc3RhbGwsICJwZW5kaW5nLmpzb24iKSk7CiAgICAgICAgICAgIHJlcXVpcmVBYnNlbnQodHJ1c3RlZCwgbmV3IEZpbGUoaW5zdGFsbCwgImluc3RhbGwtcHJvZ3Jlc3MuanNvbiIpKTsKICAgICAgICB9IGNhdGNoIChJT0V4Y2VwdGlvbiB8IFNlY3VyaXR5RXhjZXB0aW9uIGVycm9yKSB7CiAgICAgICAgICAgIHRocm93IG5ldyBJbGxlZ2FsU3RhdGVFeGNlcHRpb24oIkZGQkUgSE9MRDogdW50cnVzdGVkIG9yIHVuaW5zcGVjdGFibGUgZ2FtZSByb290cyIsIGVycm9yKTsKICAgICAgICB9CgogICAgICAgIC8vIEludGVudGlvbmFsbHkgVU5DT05ESVRJT05BTC4gVGhlc2UgaGF6YXJkcyBjYW5ub3QgYmUgY2xlYXJlZCBieSB0aGlzCiAgICAgICAgLy8gcHJvdmlkZXItbGV2ZWwgc291cmNlIGNoZWNrIG9yIGJ5IHRoZSBzeW50aGV0aWMgUHl0aG9uIHByZWZsaWdodC4KICAgICAgICB0aHJvdyBuZXcgSWxsZWdhbFN0YXRlRXhjZXB0aW9uKFVOVkVSSUZJRUQpOwogICAgfQoKICAgIC8vIEFuZHJvaWQgQVBJIDIxKyBsc3RhdCBuZXZlciBmb2xsb3dzIHRoZSBsYXN0IHNlZ21lbnQ6IGEgZGFuZ2xpbmcgc3ltbGluawogICAgLy8gaXMgUFJFU0VOVCBhbmQgdW5zYWZlLCBub3QgYW4gYWJzZW50IGZpbGUuIEV2ZXJ5IHJldHVybmVkIGVycm5vIG90aGVyIHRoYW4KICAgIC8vIEVOT0VOVCBpcyBhIGhhcmQgSE9MRC4gVGhpcyBkb2VzIG5vdCBtYWtlIHBhdGggY2hlY2tzIHJhY2UtZnJlZS4KICAgIHByaXZhdGUgc3RhdGljIFN0cnVjdFN0YXQgaW5zcGVjdEV4aXN0aW5nKEZpbGUgcGF0aCkgdGhyb3dzIElPRXhjZXB0aW9uIHsKICAgICAgICB0cnkgewogICAgICAgICAgICBTdHJ1Y3RTdGF0IGluZm8gPSBPcy5sc3RhdChwYXRoLmdldFBhdGgoKSk7CiAgICAgICAgICAgIGlmIChPc0NvbnN0YW50cy5TX0lTTE5LKGluZm8uc3RfbW9kZSkpIHsKICAgICAgICAgICAgICAgIHRocm93IG5ldyBJT0V4Y2VwdGlvbigic3ltYm9saWMgbGluayBpbiBhcHBsaWNhdGlvbiBkYXRhIHBhdGgiKTsKICAgICAgICAgICAgfQogICAgICAgICAgICByZXR1cm4gaW5mbzsKICAgICAgICB9IGNhdGNoIChFcnJub0V4Y2VwdGlvbiBmYWlsdXJlKSB7CiAgICAgICAgICAgIHRocm93IG5ldyBJT0V4Y2VwdGlvbigiY2Fubm90IGluc3BlY3QgYXBwbGljYXRpb24gZGF0YSBwYXRoIiwgZmFpbHVyZSk7CiAgICAgICAgfQogICAgfQoKICAgIHByaXZhdGUgc3RhdGljIEZpbGUgdHJ1c3RlZEZpbGVzRGlyZWN0b3J5KEZpbGUgZmlsZXMpIHRocm93cyBJT0V4Y2VwdGlvbiB7CiAgICAgICAgaWYgKGZpbGVzID09IG51bGwpIHRocm93IG5ldyBJT0V4Y2VwdGlvbigibWlzc2luZyBmaWxlcyBkaXJlY3RvcnkiKTsKICAgICAgICBGaWxlIGFic29sdXRlID0gZmlsZXMuZ2V0QWJzb2x1dGVGaWxlKCk7CiAgICAgICAgaWYgKCFhYnNvbHV0ZS5lcXVhbHMoZmlsZXMuZ2V0Q2Fub25pY2FsRmlsZSgpKSB8fAogICAgICAgICAgICAhT3NDb25zdGFudHMuU19JU0RJUihpbnNwZWN0RXhpc3RpbmcoYWJzb2x1dGUpLnN0X21vZGUpKSB7CiAgICAgICAgICAgIHRocm93IG5ldyBJT0V4Y2VwdGlvbigiZmlsZXMgZGlyZWN0b3J5IGlzIG5vdCB0cnVzdGVkIik7CiAgICAgICAgfQogICAgICAgIHJldHVybiBhYnNvbHV0ZTsKICAgIH0KCiAgICBwcml2YXRlIHN0YXRpYyBGaWxlIHRydXN0ZWRQYXRoKEZpbGUgZmlsZXNSb290LCBGaWxlIGNhbmRpZGF0ZSkgdGhyb3dzIElPRXhjZXB0aW9uIHsKICAgICAgICBGaWxlIGFic29sdXRlID0gY2FuZGlkYXRlLmdldEFic29sdXRlRmlsZSgpOwogICAgICAgIFN0cmluZyBwcmVmaXggPSBmaWxlc1Jvb3QuZ2V0UGF0aCgpICsgRmlsZS5zZXBhcmF0b3I7CiAgICAgICAgaWYgKCFhYnNvbHV0ZS5nZXRQYXRoKCkuc3RhcnRzV2l0aChwcmVmaXgpIHx8CiAgICAgICAgICAgICFhYnNvbHV0ZS5lcXVhbHMoY2FuZGlkYXRlLmdldENhbm9uaWNhbEZpbGUoKSkpIHsKICAgICAgICAgICAgdGhyb3cgbmV3IElPRXhjZXB0aW9uKCJub25jYW5vbmljYWwgb3IgZXNjYXBpbmcgYXBwbGljYXRpb24gZGF0YSBwYXRoIik7CiAgICAgICAgfQogICAgICAgIHJldHVybiBhYnNvbHV0ZTsKICAgIH0KCiAgICBwcml2YXRlIHN0YXRpYyBTdHJpbmdbXSByZWxhdGl2ZVBhcnRzKEZpbGUgcm9vdCwgRmlsZSBjaGlsZCkgdGhyb3dzIElPRXhjZXB0aW9uIHsKICAgICAgICBGaWxlIHRydXN0ZWQgPSB0cnVzdGVkUGF0aChyb290LCBjaGlsZCk7CiAgICAgICAgU3RyaW5nIHJlbGF0aXZlID0gdHJ1c3RlZC5nZXRQYXRoKCkuc3Vic3RyaW5nKHJvb3QuZ2V0UGF0aCgpLmxlbmd0aCgpICsgMSk7CiAgICAgICAgaWYgKHJlbGF0aXZlLmlzRW1wdHkoKSkgdGhyb3cgbmV3IElPRXhjZXB0aW9uKCJtaXNzaW5nIHJlbGF0aXZlIHBhdGgiKTsKICAgICAgICBTdHJpbmdbXSBwYXJ0cyA9IHJlbGF0aXZlLnNwbGl0KGphdmEudXRpbC5yZWdleC5QYXR0ZXJuLnF1b3RlKEZpbGUuc2VwYXJhdG9yKSwgLTEpOwogICAgICAgIGZvciAoU3RyaW5nIHBhcnQgOiBwYXJ0cykgewogICAgICAgICAgICBpZiAocGFydC5pc0VtcHR5KCkgfHwgcGFydC5lcXVhbHMoIi4iKSB8fCBwYXJ0LmVxdWFscygiLi4iKSkgewogICAgICAgICAgICAgICAgdGhyb3cgbmV3IElPRXhjZXB0aW9uKCJpbnZhbGlkIHBhdGggc2VnbWVudCIpOwogICAgICAgICAgICB9CiAgICAgICAgfQogICAgICAgIHJldHVybiBwYXJ0czsKICAgIH0KCiAgICBwcml2YXRlIHN0YXRpYyB2b2lkIHJlcXVpcmVFeGlzdGluZ0tpbmQoRmlsZSByb290LCBGaWxlIHRhcmdldCwgYm9vbGVhbiBkaXJlY3RvcnkpCiAgICAgICAgICAgIHRocm93cyBJT0V4Y2VwdGlvbiB7CiAgICAgICAgU3RyaW5nW10gcGFydHMgPSByZWxhdGl2ZVBhcnRzKHJvb3QsIHRhcmdldCk7CiAgICAgICAgRmlsZSBjdXJyZW50ID0gcm9vdDsKICAgICAgICBmb3IgKGludCBpID0gMDsgaSA8IHBhcnRzLmxlbmd0aDsgaSsrKSB7CiAgICAgICAgICAgIGN1cnJlbnQgPSBuZXcgRmlsZShjdXJyZW50LCBwYXJ0c1tpXSk7CiAgICAgICAgICAgIFN0cnVjdFN0YXQgc3RhdCA9IGluc3BlY3RFeGlzdGluZyhjdXJyZW50KTsKICAgICAgICAgICAgYm9vbGVhbiB3YW50RGlyZWN0b3J5ID0gZGlyZWN0b3J5IHx8IGkgPCBwYXJ0cy5sZW5ndGggLSAxOwogICAgICAgICAgICBpZiAod2FudERpcmVjdG9yeSA/ICFPc0NvbnN0YW50cy5TX0lTRElSKHN0YXQuc3RfbW9kZSkgOgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICFPc0NvbnN0YW50cy5TX0lTUkVHKHN0YXQuc3RfbW9kZSkpIHsKICAgICAgICAgICAgICAgIHRocm93IG5ldyBJT0V4Y2VwdGlvbigicmVxdWlyZWQgcGF0aCBoYXMgaW5jb3JyZWN0IGZpbGUgdHlwZSIpOwogICAgICAgICAgICB9CiAgICAgICAgfQogICAgfQoKICAgIHByaXZhdGUgc3RhdGljIHZvaWQgcmVxdWlyZURpcmVjdG9yeShGaWxlIGZpbGVzUm9vdCwgRmlsZSB2YWx1ZSkgdGhyb3dzIElPRXhjZXB0aW9uIHsKICAgICAgICByZXF1aXJlRXhpc3RpbmdLaW5kKGZpbGVzUm9vdCwgdmFsdWUsIHRydWUpOwogICAgfQoKICAgIHByaXZhdGUgc3RhdGljIHZvaWQgcmVxdWlyZVJlZ3VsYXJGaWxlKEZpbGUgZmlsZXNSb290LCBGaWxlIHZhbHVlKSB0aHJvd3MgSU9FeGNlcHRpb24gewogICAgICAgIHJlcXVpcmVFeGlzdGluZ0tpbmQoZmlsZXNSb290LCB2YWx1ZSwgZmFsc2UpOwogICAgfQoKICAgIHByaXZhdGUgc3RhdGljIHZvaWQgcmVxdWlyZUFic2VudChGaWxlIGZpbGVzUm9vdCwgRmlsZSB2YWx1ZSkgdGhyb3dzIElPRXhjZXB0aW9uIHsKICAgICAgICBTdHJpbmdbXSBwYXJ0cyA9IHJlbGF0aXZlUGFydHMoZmlsZXNSb290LCB2YWx1ZSk7CiAgICAgICAgRmlsZSBjdXJyZW50ID0gZmlsZXNSb290OwogICAgICAgIGZvciAoaW50IGkgPSAwOyBpIDwgcGFydHMubGVuZ3RoOyBpKyspIHsKICAgICAgICAgICAgLy8gRWFjaCBhbmNlc3RvciB3YXMgc3VjY2Vzc2Z1bGx5IGxzdGF0J2QgYXMgYSByZWFsIGRpcmVjdG9yeS4KICAgICAgICAgICAgLy8gRU5PRU5UIGFsb25lIG1lYW5zIHRoaXMgbmV4dCBjb21wb25lbnQgaXMgYWJzZW50LiBFQUNDRVMsCiAgICAgICAgICAgIC8vIEVOT1RESVIsIEVMT09QLCBFSU8gYW5kIGV2ZXJ5IG90aGVyIGVycm5vIHJlbWFpbiBIT0xELgogICAgICAgICAgICBjdXJyZW50ID0gbmV3IEZpbGUoY3VycmVudCwgcGFydHNbaV0pOwogICAgICAgICAgICBmaW5hbCBTdHJ1Y3RTdGF0IHN0YXQ7CiAgICAgICAgICAgIHRyeSB7CiAgICAgICAgICAgICAgICBzdGF0ID0gT3MubHN0YXQoY3VycmVudC5nZXRQYXRoKCkpOwogICAgICAgICAgICB9IGNhdGNoIChFcnJub0V4Y2VwdGlvbiBmYWlsdXJlKSB7CiAgICAgICAgICAgICAgICBpZiAoZmFpbHVyZS5lcnJubyA9PSBPc0NvbnN0YW50cy5FTk9FTlQpIHJldHVybjsKICAgICAgICAgICAgICAgIHRocm93IG5ldyBJT0V4Y2VwdGlvbigicGVuZGluZyBtYXJrZXIgZXhpc3RlbmNlIGNhbm5vdCBiZSBkZXRlcm1pbmVkIiwgZmFpbHVyZSk7CiAgICAgICAgICAgIH0KICAgICAgICAgICAgaWYgKE9zQ29uc3RhbnRzLlNfSVNMTksoc3RhdC5zdF9tb2RlKSkgewogICAgICAgICAgICAgICAgdGhyb3cgbmV3IElPRXhjZXB0aW9uKCJzeW1ib2xpYyBsaW5rIGF0IHBlbmRpbmcgbWFya2VyIHBhdGgiKTsKICAgICAgICAgICAgfQogICAgICAgICAgICBpZiAoaSA9PSBwYXJ0cy5sZW5ndGggLSAxKSB7CiAgICAgICAgICAgICAgICB0aHJvdyBuZXcgSU9FeGNlcHRpb24oInVucmVzb2x2ZWQgZ2FtZSBvciBzYXZlIHRyYW5zYWN0aW9uIHByZXNlbnQiKTsKICAgICAgICAgICAgfQogICAgICAgICAgICBpZiAoIU9zQ29uc3RhbnRzLlNfSVNESVIoc3RhdC5zdF9tb2RlKSkgewogICAgICAgICAgICAgICAgdGhyb3cgbmV3IElPRXhjZXB0aW9uKCJwZW5kaW5nIG1hcmtlciBhbmNlc3RvciBpcyBub3QgYSBkaXJlY3RvcnkiKTsKICAgICAgICAgICAgfQogICAgICAgIH0KICAgICAgICB0aHJvdyBuZXcgSU9FeGNlcHRpb24oImluZGV0ZXJtaW5hdGUgcGVuZGluZyBtYXJrZXIgc3RhdGUiKTsKICAgIH0KCiAgICAvKiogU3RhZ2UgMTogbWV0YWRhdGEtb25seSBwcmVjb25kaXRpb24uIE5vdCBhdXRob3JpemF0aW9uIHRvIHN0YXJ0IEZGQkUuICovCiAgICBzdGF0aWMgdm9pZCByZXF1aXJlSW5zdGFsbGF0aW9uT25seShDb250ZXh0IGNvbnRleHQpIHsKICAgICAgICBpZiAoY29udGV4dCA9PSBudWxsKSB0aHJvdyBuZXcgSWxsZWdhbFN0YXRlRXhjZXB0aW9uKCJGRkJFIEhPTEQ6IG1pc3NpbmcgQW5kcm9pZCBjb250ZXh0Iik7CiAgICAgICAgdHJ5IHsKICAgICAgICAgICAgdHJ1c3RlZEZpbGVzRGlyZWN0b3J5KGNvbnRleHQuZ2V0RmlsZXNEaXIoKSk7CiAgICAgICAgfSBjYXRjaCAoSU9FeGNlcHRpb24gfCBTZWN1cml0eUV4Y2VwdGlvbiBlcnJvcikgewogICAgICAgICAgICB0aHJvdyBuZXcgSWxsZWdhbFN0YXRlRXhjZXB0aW9uKCJGRkJFIEhPTEQ6IHVudHJ1c3RlZCBpbnN0YWxsYXRpb24gcm9vdCIsIGVycm9yKTsKICAgICAgICB9CiAgICAgICAgLy8gTm8gU2F2ZVNsb3RzLCBMb2NhbEdhbWVCcmlkZ2UsIERhdGFVcGRhdGVzIG9yIFB5dGhvbiBpbml0aWFsaXphdGlvbiBoZXJlLgogICAgfQoKICAgIC8qKiBNZXRhZGF0YS1vbmx5IHByZWNvbmRpdGlvbiBmb3IgdGhlIHNoYXJlZCByZXNvdXJjZSByZWdpc3RyeTsgbmV2ZXIgcmVjb3ZlciBzYXZlcy4gKi8KICAgIHN0YXRpYyB2b2lkIHJlcXVpcmVTaGFyZWRHYW1lZGF0YVdyaXRlQWRtaXNzaW9uKENvbnRleHQgY29udGV4dCkgdGhyb3dzIElPRXhjZXB0aW9uIHsKICAgICAgICB0cnkgewogICAgICAgICAgICBpZiAoY29udGV4dCA9PSBudWxsIHx8IGNvbnRleHQuZ2V0QXBwbGljYXRpb25JbmZvKCkgPT0gbnVsbCB8fAogICAgICAgICAgICAgICAgY29udGV4dC5nZXRBcHBsaWNhdGlvbkluZm8oKS5kYXRhRGlyID09IG51bGwpIHsKICAgICAgICAgICAgICAgIHRocm93IG5ldyBJT0V4Y2VwdGlvbigibWlzc2luZyBhcHBsaWNhdGlvbiBkYXRhIHJvb3QiKTsKICAgICAgICAgICAgfQogICAgICAgICAgICBGaWxlIGRhdGFSb290ID0gdHJ1c3RlZEZpbGVzRGlyZWN0b3J5KG5ldyBGaWxlKGNvbnRleHQuZ2V0QXBwbGljYXRpb25JbmZvKCkuZGF0YURpcikpOwogICAgICAgICAgICBGaWxlIGZpbGVzUm9vdCA9IHRydXN0ZWRGaWxlc0RpcmVjdG9yeShjb250ZXh0LmdldEZpbGVzRGlyKCkpOwogICAgICAgICAgICBpZiAoIWZpbGVzUm9vdC5lcXVhbHMobmV3IEZpbGUoZGF0YVJvb3QsICJmaWxlcyIpKSkgewogICAgICAgICAgICAgICAgdGhyb3cgbmV3IElPRXhjZXB0aW9uKCJ1bmV4cGVjdGVkIGFwcGxpY2F0aW9uIGZpbGVzIHJvb3QiKTsKICAgICAgICAgICAgfQogICAgICAgICAgICAvLyBBIG1pc3NpbmcgYW5jZXN0b3IgaXMgYWxsb3dlZCBvbmx5IGFmdGVyIGxzdGF0IGNvbmZpcm1zIEVOT0VOVC4KICAgICAgICAgICAgLy8gSm91cm5hbCBzaWJsaW5ncyBtYXkgYmUgbGVmdCBieSBhbiBpbnRlcnJ1cHRlZCBBdG9taWNGaWxlIHdyaXRlLgogICAgICAgICAgICBTdHJpbmdbXSBzdWZmaXhlcyA9IHsiIiwgIi5iYWsiLCAiLm5ldyIsICIudG1wIn07CiAgICAgICAgICAgIGZvciAoU3RyaW5nIHN1ZmZpeCA6IHN1ZmZpeGVzKSB7CiAgICAgICAgICAgICAgICByZXF1aXJlQWJzZW50KGZpbGVzUm9vdCwgbmV3IEZpbGUoZmlsZXNSb290LCAiZXh2aXVzL3N0YXRlL3Nsb3RzL2RlbGV0ZS5qc29uIiArIHN1ZmZpeCkpOwogICAgICAgICAgICAgICAgcmVxdWlyZUFic2VudChmaWxlc1Jvb3QsIG5ldyBGaWxlKGZpbGVzUm9vdCwgImV4dml1cy9zdGF0ZS9zbG90cy9pbXBvcnQvam91cm5hbC5qc29uIiArIHN1ZmZpeCkpOwogICAgICAgICAgICAgICAgcmVxdWlyZUFic2VudChmaWxlc1Jvb3QsIG5ldyBGaWxlKGZpbGVzUm9vdCwgImV4dml1cy9zdGF0ZS9zbG90cy9pbXBvcnQvaW1wb3J0LnppcCIgKyBzdWZmaXgpKTsKICAgICAgICAgICAgICAgIGlmICghc3VmZml4LmlzRW1wdHkoKSkgewogICAgICAgICAgICAgICAgICAgIHJlcXVpcmVBYnNlbnQoZmlsZXNSb290LCBuZXcgRmlsZShmaWxlc1Jvb3QsICJleHZpdXMvc3RhdGUvc2xvdHMvaW5kZXguanNvbiIgKyBzdWZmaXgpKTsKICAgICAgICAgICAgICAgICAgICByZXF1aXJlQWJzZW50KGRhdGFSb290LCBuZXcgRmlsZShkYXRhUm9vdCwgInNoYXJlZF9wcmVmcy9nYW1lZGF0YS54bWwiICsgc3VmZml4KSk7CiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgIH0KICAgICAgICAgICAgcmVxdWlyZUFic2VudChmaWxlc1Jvb3QsIG5ldyBGaWxlKGZpbGVzUm9vdCwgImV4dml1cy9zdGF0ZS9zbG90cy9pbXBvcnQvcHJlcGFyZWQiKSk7CiAgICAgICAgICAgIHJlcXVpcmVPcHRpb25hbFJlZ3VsYXJGaWxlKGZpbGVzUm9vdCwgbmV3IEZpbGUoZmlsZXNSb290LCAiZXh2aXVzL3N0YXRlL3Nsb3RzL2luZGV4Lmpzb24iKSk7CiAgICAgICAgICAgIHJlcXVpcmVPcHRpb25hbFJlZ3VsYXJGaWxlKGRhdGFSb290LCBuZXcgRmlsZShkYXRhUm9vdCwgInNoYXJlZF9wcmVmcy9nYW1lZGF0YS54bWwiKSk7CiAgICAgICAgfSBjYXRjaCAoSU9FeGNlcHRpb24gfCBTZWN1cml0eUV4Y2VwdGlvbiBlcnJvcikgewogICAgICAgICAgICB0aHJvdyBuZXcgSU9FeGNlcHRpb24oIkZGQkUgSE9MRDogc2hhcmVkIHJlc291cmNlIHJlZ2lzdHJ5IHdyaXRlIGlzIG5vdCBhZG1pdHRlZDsgc2F2ZSB0cmFuc2FjdGlvbiBvciB1bnNhZmUgbWV0YWRhdGEiLCBlcnJvcik7CiAgICAgICAgfQogICAgICAgIC8vIFRoaXMgaXMgYSBtZXRhZGF0YSBzbmFwc2hvdCwgbm90IGEgbG9jayBvciBjcmFzaC1kdXJhYmlsaXR5IGd1YXJhbnRlZS4KICAgIH0KCiAgICBwcml2YXRlIHN0YXRpYyB2b2lkIHJlcXVpcmVPcHRpb25hbFJlZ3VsYXJGaWxlKEZpbGUgcm9vdCwgRmlsZSB2YWx1ZSkgdGhyb3dzIElPRXhjZXB0aW9uIHsKICAgICAgICBTdHJpbmdbXSBwYXJ0cyA9IHJlbGF0aXZlUGFydHMocm9vdCwgdmFsdWUpOwogICAgICAgIEZpbGUgY3VycmVudCA9IHJvb3Q7CiAgICAgICAgZm9yIChpbnQgaSA9IDA7IGkgPCBwYXJ0cy5sZW5ndGg7IGkrKykgewogICAgICAgICAgICBjdXJyZW50ID0gbmV3IEZpbGUoY3VycmVudCwgcGFydHNbaV0pOwogICAgICAgICAgICBmaW5hbCBTdHJ1Y3RTdGF0IHN0YXQ7CiAgICAgICAgICAgIHRyeSB7CiAgICAgICAgICAgICAgICBzdGF0ID0gT3MubHN0YXQoY3VycmVudC5nZXRQYXRoKCkpOwogICAgICAgICAgICB9IGNhdGNoIChFcnJub0V4Y2VwdGlvbiBmYWlsdXJlKSB7CiAgICAgICAgICAgICAgICBpZiAoZmFpbHVyZS5lcnJubyA9PSBPc0NvbnN0YW50cy5FTk9FTlQpIHJldHVybjsKICAgICAgICAgICAgICAgIHRocm93IG5ldyBJT0V4Y2VwdGlvbigic2hhcmVkIHByZWZlcmVuY2UgcGF0aCBjYW5ub3QgYmUgaW5zcGVjdGVkIiwgZmFpbHVyZSk7CiAgICAgICAgICAgIH0KICAgICAgICAgICAgaWYgKE9zQ29uc3RhbnRzLlNfSVNMTksoc3RhdC5zdF9tb2RlKSB8fAogICAgICAgICAgICAgICAgKGkgPCBwYXJ0cy5sZW5ndGggLSAxID8gIU9zQ29uc3RhbnRzLlNfSVNESVIoc3RhdC5zdF9tb2RlKSA6CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAhT3NDb25zdGFudHMuU19JU1JFRyhzdGF0LnN0X21vZGUpKSkgewogICAgICAgICAgICAgICAgdGhyb3cgbmV3IElPRXhjZXB0aW9uKCJzaGFyZWQgcHJlZmVyZW5jZSBwYXRoIGhhcyB1bnNhZmUgZmlsZSB0eXBlIik7CiAgICAgICAgICAgIH0KICAgICAgICB9CiAgICB9CgogICAgLyoqIFN0YWdlIDIgaXMgcGVybWFuZW50bHkgZGlzYWJsZWQgaW4gdGhpcyBkaXNwb3NhYmxlIGRlc2lnbi4gKi8KICAgIHN0YXRpYyBib29sZWFuIGdhbWVwbGF5QXBwcm92ZWQoKSB7CiAgICAgICAgcmV0dXJuIGZhbHNlOwogICAgfQoKICAgIC8qKiBGb3IgZXZlcnkga25vd24gbG9jYWwtc2VydmVyIHBhdGgsIGRlbnkgYmVmb3JlIGFueSBlZmZlY3Qgb3IgY2FjaGVkIGdhbWUuICovCiAgICBzdGF0aWMgdm9pZCByZXF1aXJlR2FtZXBsYXlBZG1pc3Npb24oKSB7CiAgICAgICAgdGhyb3cgbmV3IElsbGVnYWxTdGF0ZUV4Y2VwdGlvbihVTlZFUklGSUVEKTsKICAgIH0KfQo="
+    },
+    {
+      "path": "source/memorial/android/src/main/java/com/exvius/local/DataDownloadActivity.java",
+      "bytes": 4958,
+      "sha256": "639b831e345d607bb7b2da864938a5a03f3fd2630e97f388c036fdaf37597525",
+      "git_blob": "04f57fee4115cb4c0388b1a1b9e6a578a4b49aea",
+      "public_base": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330",
+        "bytes": 4639,
+        "sha256": "ea1cc7ce2c3f7f8eda1285be741805428dded4d4f45199bacd12045dd4084d9c",
+        "git_blob": "a486113b4ca1d3c469599cb4b25cc1419330b7a5"
+      },
+      "line_edits": [
+        [
+          22,
+          22,
+          "ICAgICAgICBEYXRhVXBkYXRlcy5pbml0aWFsaXplKGdldEFwcGxpY2F0aW9uQ29udGV4dCgpKTsK"
+        ],
+        [
+          71,
+          71,
+          "ICAgICAgICAvLyBDb21wbGV0ZWQgbWFuZGF0b3J5IHNldHVwIHJlbWFpbnMgdmlzaWJsZSwgYnV0IG5ldmVyIGFkbWl0cyBnYW1lcGxheS4KICAgICAgICBpZiAoIUJvb3RzdHJhcEFkbWlzc2lvbkdhdGUuZ2FtZXBsYXlBcHByb3ZlZCgpKSB7CiAgICAgICAgICAgIHNob3dEb3dubG9hZFBhZ2UoKTsKICAgICAgICAgICAgc3RhdHVzLnNldFRleHQoIkdhbWUgZGF0YSBzZXR1cCBjb21wbGV0ZS4gR2FtZXBsYXkgcmVtYWlucyBvbiBIT0xELiIpOwogICAgICAgICAgICByZXRyeS5zZXRWaXNpYmlsaXR5KFZpZXcuR09ORSk7CiAgICAgICAgICAgIHJldHVybjsKICAgICAgICB9Cg=="
+        ],
+        [
+          80,
+          81,
+          ""
+        ]
+      ]
+    },
+    {
+      "path": "source/memorial/android/src/main/java/com/exvius/local/DataPack.java",
+      "bytes": 4851,
+      "sha256": "605ace7af7036ce6c5bbd3dc44ed5f962ff6a7480ac81ab06c51dd7b0a30bffd",
+      "git_blob": "8fe6e6f47755f61acb5d6bce9ea0b3bd206c0f05",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/memorial/android/src/main/java/com/exvius/local/DataUpdates.java",
+      "bytes": 39339,
+      "sha256": "34b82c9a5e0a7b75171a1a8b8d9b113a3e6b4000eb3bfd1c4c9fd9a23f5c554f",
+      "git_blob": "374e6d0916c481e3366ad1f75bbafefd02658282",
+      "public_base": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330",
+        "bytes": 38868,
+        "sha256": "38808ecc3a4d869ae4c553d0432db5716cfd69d2a01dd1310ab66430bfd812c6",
+        "git_blob": "3349ce2ab3d1b4cb2d9a41a93482e27b7765b2ec"
+      },
+      "line_edits": [
+        [
+          175,
+          175,
+          "ICAgIC8vIFNPVVJDRS1PTkxZOiBhcHAtaW5zdGFsbGVyIGNvbnRpbnVhdGlvbiByZXF1aXJlcyBzZXBhcmF0ZSBvd25lciBhcHByb3ZhbC4KICAgIHByaXZhdGUgc3RhdGljIGZpbmFsIGJvb2xlYW4gQVVUT01BVElDX0FQUF9JTlNUQUxMRVJfQVBQUk9WRUQgPSBmYWxzZTsK"
+        ],
+        [
+          182,
+          183,
+          "ICAgICAgICAgICAgICAgICAgICBpZiAoQVVUT01BVElDX0FQUF9JTlNUQUxMRVJfQVBQUk9WRUQpIG1heWJlSW5zdGFsbChhY3Rpdml0eSk7Cg=="
+        ],
+        [
+          574,
+          574,
+          "ICAgICAgICBCb290c3RyYXBBZG1pc3Npb25HYXRlLnJlcXVpcmVTaGFyZWRHYW1lZGF0YVdyaXRlQWRtaXNzaW9uKGNvbnRleHQpOwo="
+        ],
+        [
+          663,
+          664,
+          "ICAgICAgICAgICAgICAgICAgICBpZiAobWFuZGF0b3J5ICYmICFyZWFkeShjb250ZXh0KSkgZmFpbHVyZSA9ICJHYW1lIHNldHVwIGlzIGluY29tcGxldGUuIElmIGFuIGFwcCB1cGRhdGUgaXMgcmVxdWlyZWQsIGF1dG9tYXRpYyBpbnN0YWxsYXRpb24gcmVtYWlucyBvbiBIT0xEIHBlbmRpbmcgc2VwYXJhdGUgYXV0aG9yaXphdGlvbjsgUmV0cnkgZG9lcyBub3QgYXV0aG9yaXplIGluc3RhbGxhdGlvbi4iOwo="
+        ],
+        [
+          701,
+          702,
+          "ICAgICAgICBpZiAoQVVUT01BVElDX0FQUF9JTlNUQUxMRVJfQVBQUk9WRUQgJiYgYWN0aXZpdHkgIT0gbnVsbCkgYWN0aXZpdHkucnVuT25VaVRocmVhZCgoKSAtPiBtYXliZUluc3RhbGwoYWN0aXZpdHkpKTsK"
+        ],
+        [
+          728,
+          728,
+          "ICAgICAgICBpZiAoIUFVVE9NQVRJQ19BUFBfSU5TVEFMTEVSX0FQUFJPVkVEKSByZXR1cm47Cg=="
+        ]
+      ]
+    },
+    {
+      "path": "source/memorial/android/src/main/java/com/exvius/local/GameAssets.java",
+      "bytes": 2276,
+      "sha256": "c4ccb4171fd63dba6de34f6e88c7287e71383a685fab9743a11b139786416fb0",
+      "git_blob": "c40a2132b5b2664e9429ef5c8a92428288ea3c0a",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/memorial/android/src/main/java/com/exvius/local/LocalCocosTasks.java",
+      "bytes": 6798,
+      "sha256": "e580a00e43a17ba676d86996aef38ead01511fb738c3e4d8dbae077e5ebf6517",
+      "git_blob": "cd4d954d9ab27fa89fd9fd824d8f90da453abd9d",
+      "public_base": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330",
+        "bytes": 6432,
+        "sha256": "d1940d8aaa0e12238979ea385e0f8491d602f16955fffd55613d5549caf4855e",
+        "git_blob": "a3237cecab9d02a5024c159aea945dabc79bb7f8"
+      },
+      "line_edits": [
+        [
+          26,
+          26,
+          "ICAgICAgICBCb290c3RyYXBBZG1pc3Npb25HYXRlLnJlcXVpcmVHYW1lcGxheUFkbWlzc2lvbigpOwo="
+        ],
+        [
+          36,
+          36,
+          "ICAgICAgICBCb290c3RyYXBBZG1pc3Npb25HYXRlLnJlcXVpcmVHYW1lcGxheUFkbWlzc2lvbigpOwo="
+        ],
+        [
+          41,
+          41,
+          "ICAgICAgICBCb290c3RyYXBBZG1pc3Npb25HYXRlLnJlcXVpcmVHYW1lcGxheUFkbWlzc2lvbigpOwo="
+        ],
+        [
+          42,
+          42,
+          "ICAgICAgICAgICAgQm9vdHN0cmFwQWRtaXNzaW9uR2F0ZS5yZXF1aXJlR2FtZXBsYXlBZG1pc3Npb24oKTsK"
+        ],
+        [
+          90,
+          90,
+          "ICAgICAgICAgICAgICAgIEJvb3RzdHJhcEFkbWlzc2lvbkdhdGUucmVxdWlyZUdhbWVwbGF5QWRtaXNzaW9uKCk7Cg=="
+        ],
+        [
+          115,
+          115,
+          "ICAgICAgICBCb290c3RyYXBBZG1pc3Npb25HYXRlLnJlcXVpcmVHYW1lcGxheUFkbWlzc2lvbigpOwo="
+        ]
+      ]
+    },
+    {
+      "path": "source/memorial/android/src/main/java/com/exvius/local/LocalGameBridge.java",
+      "bytes": 15133,
+      "sha256": "2069842f393844db924a7b906e22179ee35b9698741e93347b4f6fbffe057293",
+      "git_blob": "5d6ab07d778242463caaa8df3e0170a0e4436f61",
+      "public_base": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330",
+        "bytes": 13647,
+        "sha256": "e9d5bc97624498c93509db6a1521e1b2ad678f27086e1f506f5f2036c48b42d6",
+        "git_blob": "9b514214d21141f5d370f9d19f17001273f75184"
+      },
+      "line_edits": [
+        [
+          23,
+          27,
+          "ICAgIHB1YmxpYyBzdGF0aWMgU3RyaW5nIHRpdGxlUHJvZmlsZXMoKSB7IEJvb3RzdHJhcEFkbWlzc2lvbkdhdGUucmVxdWlyZUdhbWVwbGF5QWRtaXNzaW9uKCk7IHJldHVybiBTYXZlU2xvdHMudGl0bGVQcm9maWxlcygpOyB9CiAgICBwdWJsaWMgc3RhdGljIFN0cmluZyB0aXRsZUluc2V0cygpIHsgQm9vdHN0cmFwQWRtaXNzaW9uR2F0ZS5yZXF1aXJlR2FtZXBsYXlBZG1pc3Npb24oKTsgcmV0dXJuIFNhdmVTbG90cy50aXRsZUluc2V0cygpOyB9CiAgICBwdWJsaWMgc3RhdGljIGJvb2xlYW4gcHJvZmlsZUFjdGlvbihTdHJpbmcgYWN0aW9uLCBTdHJpbmcgaWQpIHsgQm9vdHN0cmFwQWRtaXNzaW9uR2F0ZS5yZXF1aXJlR2FtZXBsYXlBZG1pc3Npb24oKTsgcmV0dXJuIFNhdmVTbG90cy5wcm9maWxlQWN0aW9uKGFjdGlvbiwgaWQpOyB9CiAgICBwdWJsaWMgc3RhdGljIGJvb2xlYW4gb3BlblNhdmVUcmFuc2ZlcigpIHsgQm9vdHN0cmFwQWRtaXNzaW9uR2F0ZS5yZXF1aXJlR2FtZXBsYXlBZG1pc3Npb24oKTsgcmV0dXJuIFNhdmVUcmFuc2ZlckFjdGl2aXR5Lm9wZW5TYXZlVHJhbnNmZXIoKTsgfQo="
+        ],
+        [
+          29,
+          29,
+          "ICAgICAgICBCb290c3RyYXBBZG1pc3Npb25HYXRlLnJlcXVpcmVHYW1lcGxheUFkbWlzc2lvbigpOwo="
+        ],
+        [
+          53,
+          53,
+          "ICAgICAgICBCb290c3RyYXBBZG1pc3Npb25HYXRlLnJlcXVpcmVHYW1lcGxheUFkbWlzc2lvbigpOwo="
+        ],
+        [
+          58,
+          58,
+          "ICAgICAgICBCb290c3RyYXBBZG1pc3Npb25HYXRlLnJlcXVpcmVHYW1lcGxheUFkbWlzc2lvbigpOwo="
+        ],
+        [
+          62,
+          62,
+          "ICAgICAgICBCb290c3RyYXBBZG1pc3Npb25HYXRlLnJlcXVpcmVHYW1lcGxheUFkbWlzc2lvbigpOwo="
+        ],
+        [
+          69,
+          70,
+          "ICAgIHB1YmxpYyBzdGF0aWMgdm9pZCBpbnN0YWxsQXNzZXRzKENvbnRleHQgb3duZXIpIHsgQm9vdHN0cmFwQWRtaXNzaW9uR2F0ZS5yZXF1aXJlR2FtZXBsYXlBZG1pc3Npb24oKTsgR2FtZUFzc2V0cy5hdHRhY2gob3duZXIpOyB9Cg=="
+        ],
+        [
+          71,
+          72,
+          "ICAgIHB1YmxpYyBzdGF0aWMgU3RyaW5nIGdhbWVBc3NldHNQYXRoKCkgeyBCb290c3RyYXBBZG1pc3Npb25HYXRlLnJlcXVpcmVHYW1lcGxheUFkbWlzc2lvbigpOyByZXR1cm4gR2FtZUFzc2V0cy5hcmNoaXZlKGNvbnRleHQpLmdldEFic29sdXRlUGF0aCgpOyB9Cg=="
+        ],
+        [
+          75,
+          75,
+          "ICAgICAgICBCb290c3RyYXBBZG1pc3Npb25HYXRlLnJlcXVpcmVHYW1lcGxheUFkbWlzc2lvbigpOwo="
+        ],
+        [
+          80,
+          80,
+          "ICAgICAgICBCb290c3RyYXBBZG1pc3Npb25HYXRlLnJlcXVpcmVHYW1lcGxheUFkbWlzc2lvbigpOwo="
+        ],
+        [
+          94,
+          94,
+          "ICAgICAgICBCb290c3RyYXBBZG1pc3Npb25HYXRlLnJlcXVpcmVHYW1lcGxheUFkbWlzc2lvbigpOwo="
+        ],
+        [
+          100,
+          100,
+          "ICAgICAgICBCb290c3RyYXBBZG1pc3Npb25HYXRlLnJlcXVpcmVHYW1lcGxheUFkbWlzc2lvbigpOwo="
+        ],
+        [
+          117,
+          117,
+          "ICAgICAgICBCb290c3RyYXBBZG1pc3Npb25HYXRlLnJlcXVpcmVHYW1lcGxheUFkbWlzc2lvbigpOwo="
+        ],
+        [
+          130,
+          130,
+          "ICAgICAgICBCb290c3RyYXBBZG1pc3Npb25HYXRlLnJlcXVpcmVHYW1lcGxheUFkbWlzc2lvbigpOwo="
+        ],
+        [
+          148,
+          148,
+          "ICAgICAgICBCb290c3RyYXBBZG1pc3Npb25HYXRlLnJlcXVpcmVHYW1lcGxheUFkbWlzc2lvbigpOwo="
+        ],
+        [
+          164,
+          164,
+          "ICAgICAgICBCb290c3RyYXBBZG1pc3Npb25HYXRlLnJlcXVpcmVHYW1lcGxheUFkbWlzc2lvbigpOwo="
+        ],
+        [
+          182,
+          182,
+          "ICAgICAgICBCb290c3RyYXBBZG1pc3Npb25HYXRlLnJlcXVpcmVHYW1lcGxheUFkbWlzc2lvbigpOwo="
+        ],
+        [
+          218,
+          218,
+          "ICAgICAgICBCb290c3RyYXBBZG1pc3Npb25HYXRlLnJlcXVpcmVHYW1lcGxheUFkbWlzc2lvbigpOwo="
+        ],
+        [
+          223,
+          223,
+          "ICAgICAgICBCb290c3RyYXBBZG1pc3Npb25HYXRlLnJlcXVpcmVHYW1lcGxheUFkbWlzc2lvbigpOwo="
+        ],
+        [
+          228,
+          228,
+          "ICAgICAgICBCb290c3RyYXBBZG1pc3Npb25HYXRlLnJlcXVpcmVHYW1lcGxheUFkbWlzc2lvbigpOwo="
+        ],
+        [
+          233,
+          233,
+          "ICAgICAgICBCb290c3RyYXBBZG1pc3Npb25HYXRlLnJlcXVpcmVHYW1lcGxheUFkbWlzc2lvbigpOwo="
+        ],
+        [
+          238,
+          238,
+          "ICAgICAgICBCb290c3RyYXBBZG1pc3Npb25HYXRlLnJlcXVpcmVHYW1lcGxheUFkbWlzc2lvbigpOwo="
+        ],
+        [
+          249,
+          249,
+          "ICAgICAgICBCb290c3RyYXBBZG1pc3Npb25HYXRlLnJlcXVpcmVHYW1lcGxheUFkbWlzc2lvbigpOwo="
+        ],
+        [
+          255,
+          255,
+          "ICAgICAgICBCb290c3RyYXBBZG1pc3Npb25HYXRlLnJlcXVpcmVHYW1lcGxheUFkbWlzc2lvbigpOwo="
+        ]
+      ]
+    },
+    {
+      "path": "source/memorial/android/src/main/java/com/exvius/local/LocalGameConnection.java",
+      "bytes": 8151,
+      "sha256": "37a9760f8e6319e7f5daab75fbe2ce6cefc10890b2ad20709896fb8e3553e2c3",
+      "git_blob": "0a6ba10eca215a75fe719e46ffed9860dac558ec",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/memorial/android/src/main/java/com/exvius/local/LocalGameProvider.java",
+      "bytes": 1010,
+      "sha256": "6074d0297920aee3236dae6f0e0bc66808d39747018b5f73230529e79a0304e3",
+      "git_blob": "726d5f09b9c344321cfde403ca8636db98ee6612",
+      "public_base": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330",
+        "bytes": 972,
+        "sha256": "df95e41cb27f2d57de78b70fb1191e5576cafaa6e156de7e56dd3056e1b6249d",
+        "git_blob": "6e94c50899e4e4e087ab0a7aaf5ab55e320702d1"
+      },
+      "line_edits": [
+        [
+          9,
+          11,
+          "ICAgICAgICAvLyBTdGFnZSAxOiBvbmx5IHRoZSBkYXRhLXNldHVwIEFjdGl2aXR5IGNhbiBwcm9jZWVkOyBubyBzYXZlIG9yIGJyaWRnZSBpbml0LgogICAgICAgIEJvb3RzdHJhcEFkbWlzc2lvbkdhdGUucmVxdWlyZUluc3RhbGxhdGlvbk9ubHkoZ2V0Q29udGV4dCgpLmdldEFwcGxpY2F0aW9uQ29udGV4dCgpKTsK"
+        ]
+      ]
+    },
+    {
+      "path": "source/memorial/android/src/main/java/com/exvius/local/PreparedGameTables.java",
+      "bytes": 5547,
+      "sha256": "3217c8ea1ed7ae3a314a1540c57f80090ff8ab60440434bcd61e7015456b4938",
+      "git_blob": "dee3595e40608ddcbcfb6525ce446e443301d096",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/memorial/android/src/main/java/com/exvius/local/SaveRestartActivity.java",
+      "bytes": 4298,
+      "sha256": "320b4dacab2046197aa94b5c5d62d81124856e5c7a46addefda48a029b9094d7",
+      "git_blob": "96e7d66348d57faf2a95e3bfae345fe3fc67cbe7",
+      "public_base": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330",
+        "bytes": 4062,
+        "sha256": "a6dde3b58b2bec0d6c2c65146418d221290825f3bf0ef55c030fd25375de27c4",
+        "git_blob": "3f818845ed2e57b93498a6c8bece10a782da9522"
+      },
+      "line_edits": [
+        [
+          19,
+          19,
+          "ICAgICAgICBCb290c3RyYXBBZG1pc3Npb25HYXRlLnJlcXVpcmVHYW1lcGxheUFkbWlzc2lvbigpOwo="
+        ],
+        [
+          28,
+          28,
+          "ICAgICAgICBCb290c3RyYXBBZG1pc3Npb25HYXRlLnJlcXVpcmVHYW1lcGxheUFkbWlzc2lvbigpOwo="
+        ],
+        [
+          65,
+          65,
+          "ICAgICAgICBCb290c3RyYXBBZG1pc3Npb25HYXRlLnJlcXVpcmVHYW1lcGxheUFkbWlzc2lvbigpOwo="
+        ],
+        [
+          68,
+          68,
+          "ICAgICAgICBCb290c3RyYXBBZG1pc3Npb25HYXRlLnJlcXVpcmVHYW1lcGxheUFkbWlzc2lvbigpOwo="
+        ]
+      ]
+    },
+    {
+      "path": "source/memorial/android/src/main/java/com/exvius/local/SaveSlots.java",
+      "bytes": 22336,
+      "sha256": "3954ff0369a8492c62a99f065e0ce969d08509b3f7bb4831ef292897f4bc801c",
+      "git_blob": "336944c826e1e47bcae1b0a25da982caf39d3f76",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/memorial/android/src/main/java/com/exvius/local/SaveTransferActivity.java",
+      "bytes": 32527,
+      "sha256": "c9af5a3cfdd742bb204f02dde6f77b0719ca283602c5425f93fd98ab8e3d943f",
+      "git_blob": "2d1f9ca283c271b2b61b8dc6d3c448c42ec19813",
+      "public_base": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330",
+        "bytes": 32219,
+        "sha256": "03531514eef62fbbf5b77d0b376f0440ab6af07910983c3b47bdb9447c1aae73",
+        "git_blob": "02b407775c0a59699f3a593fe34843a9a15aee23"
+      },
+      "line_edits": [
+        [
+          50,
+          50,
+          "ICAgICAgICBCb290c3RyYXBBZG1pc3Npb25HYXRlLnJlcXVpcmVHYW1lcGxheUFkbWlzc2lvbigpOw0K"
+        ],
+        [
+          83,
+          83,
+          "ICAgICAgICBCb290c3RyYXBBZG1pc3Npb25HYXRlLnJlcXVpcmVHYW1lcGxheUFkbWlzc2lvbigpOw0K"
+        ],
+        [
+          163,
+          163,
+          "ICAgICAgICBCb290c3RyYXBBZG1pc3Npb25HYXRlLnJlcXVpcmVHYW1lcGxheUFkbWlzc2lvbigpOw0K"
+        ],
+        [
+          172,
+          172,
+          "ICAgICAgICBCb290c3RyYXBBZG1pc3Npb25HYXRlLnJlcXVpcmVHYW1lcGxheUFkbWlzc2lvbigpOw0K"
+        ],
+        [
+          177,
+          177,
+          "ICAgICAgICAgICAgICAgIEJvb3RzdHJhcEFkbWlzc2lvbkdhdGUucmVxdWlyZUdhbWVwbGF5QWRtaXNzaW9uKCk7DQo="
+        ]
+      ]
+    },
+    {
+      "path": "source/memorial/android/src/main/python/android_game.py",
+      "bytes": 4579,
+      "sha256": "3a67399a30201f548cb5007532ef62fe36332e1cadb220e155b39998b6c7261c",
+      "git_blob": "ff332bfc4a438abeca22825c48c3aa4297129427",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/battle_content.py",
+      "bytes": 47141,
+      "sha256": "e959ac173902ba80b5b1d3c0eaf81c4f31536e27d64a6d3a9df575460e02b2ca",
+      "git_blob": "18a9db20687a9a44dbbd8edca919418e8de00625",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/battle_names.json",
+      "bytes": 870021,
+      "sha256": "d12e5e5e8c33cebc0d875f1405b7c4938ef803cb98ce3b20402ab6c04066842d",
+      "git_blob": "bebd4ebdf69e702f37b15f27cf0ad180f1cf784e",
+      "public": {
+        "repo": "Elvlin/exvius-offline",
+        "ref": "65da3ca6b7924774c6c22dfbe397157c4a8966c4"
+      }
+    },
+    {
+      "path": "source/server/bulk_fusion_preview.py",
+      "bytes": 4005,
+      "sha256": "147f9a94fe423e84e839afd898c915b3fb0bfc5a5501f24c2f40d2c251db416b",
+      "git_blob": "680c5b28970f1d7ee32ba1b2e0a4e84241949edb",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/capture_server.py",
+      "bytes": 76231,
+      "sha256": "8182db4634dc8ec932221bb1f82fca04e8648559e779e56357b2e6789fb02bb4",
+      "git_blob": "04a7772fbc01bb62eec5b331660dc583e999e1b1",
+      "public": {
+        "repo": "Elvlin/exvius-offline",
+        "ref": "8bcede33b4af67ad245e30d9053f2b4aef6923c6"
+      }
+    },
+    {
+      "path": "source/server/colosseum_names.json",
+      "bytes": 6144,
+      "sha256": "e111e5ed404015320182f2d718bef30ff4695a60937b63ac4cf425460b267ec5",
+      "git_blob": "bcaf179740faa99a8e5193ed4dfc418874d98bcd",
+      "public": {
+        "repo": "Elvlin/exvius-offline",
+        "ref": "65da3ca6b7924774c6c22dfbe397157c4a8966c4"
+      }
+    },
+    {
+      "path": "source/server/content/battle/F_MISSION_MST.tsv",
+      "bytes": 340093,
+      "sha256": "d3302113d43c05c3adbb11adfa67b98bddc286e7f217f584ee0d04ed109d1e2f",
+      "git_blob": "3de92db73ee9a9782eb1f9ba160308fca343b524",
+      "public": {
+        "repo": "Elvlin/exvius-offline",
+        "ref": "65da3ca6b7924774c6c22dfbe397157c4a8966c4"
+      }
+    },
+    {
+      "path": "source/server/content/exbonus_masters.json",
+      "bytes": 462457,
+      "sha256": "50fa4871c6644a5440c19770b9414a3f4d392a8242cf0274a671e1176d1be9c2",
+      "git_blob": "d22e61be9896767bf9f7dd130737444f5252f6b7",
+      "public": {
+        "repo": "Elvlin/exvius-offline",
+        "ref": "65da3ca6b7924774c6c22dfbe397157c4a8966c4"
+      }
+    },
+    {
+      "path": "source/server/content/exbonus_text.json",
+      "bytes": 75527,
+      "sha256": "486fc9fc76b76d449ad72959eb6a9b8ebbb0e1e63ed27a1fcbd6e2108182d83d",
+      "git_blob": "d8eb917ad55c48897829c887e9fdef8a6c7b7f48",
+      "public": {
+        "repo": "Elvlin/exvius-offline",
+        "ref": "65da3ca6b7924774c6c22dfbe397157c4a8966c4"
+      }
+    },
+    {
+      "path": "source/server/content/free_event_units.json",
+      "bytes": 18481,
+      "sha256": "b6d95ab186fc0bde8cef97ea4cda37fc5d24d071ea3b61fcac734f402a7242b5",
+      "git_blob": "1e8a328871d793646578a4af73dba982a9b45763",
+      "public": {
+        "repo": "Elvlin/exvius-offline",
+        "ref": "65da3ca6b7924774c6c22dfbe397157c4a8966c4"
+      }
+    },
+    {
+      "path": "source/server/content/gifts.json",
+      "bytes": 2388,
+      "sha256": "335d5327abf44a19aea763ca9e2812d261262fa7ae5c06c36fa118ea4213c6b9",
+      "git_blob": "9e838f6f1b903e7a62cdc1ac57736de700d92962",
+      "public": {
+        "repo": "Elvlin/exvius-offline",
+        "ref": "65da3ca6b7924774c6c22dfbe397157c4a8966c4"
+      }
+    },
+    {
+      "path": "source/server/content/legacy_resource_skips.json",
+      "bytes": 3469,
+      "sha256": "256946139603beb78333c8419083d8018c6cc084a2eb8d54f1d4e1bd2ab1b2d0",
+      "git_blob": "9810a1bb349ec56b887cb2484b0222aa3ba87527",
+      "public": {
+        "repo": "Elvlin/exvius-offline",
+        "ref": "65da3ca6b7924774c6c22dfbe397157c4a8966c4"
+      }
+    },
+    {
+      "path": "source/server/content/quest_chain_repairs.json",
+      "bytes": 42527,
+      "sha256": "9322ab9905a196b38478102df17fa3c320a4419dfe4459b1b8194197e7ae95e8",
+      "git_blob": "d0181c948f60d9f66877c4444337dea3f136a25c",
+      "public": {
+        "repo": "Elvlin/exvius-offline",
+        "ref": "65da3ca6b7924774c6c22dfbe397157c4a8966c4"
+      }
+    },
+    {
+      "path": "source/server/content/series_point_rewards.json",
+      "bytes": 3274,
+      "sha256": "3fbceca6533510a2aeed135efd48e95928de1f48fcc3b7d7d63e666031b60317",
+      "git_blob": "42d43bcb77ad15a05f8ad427799337baca896f9b",
+      "public": {
+        "repo": "Elvlin/exvius-offline",
+        "ref": "65da3ca6b7924774c6c22dfbe397157c4a8966c4"
+      }
+    },
+    {
+      "path": "source/server/content/story_reward_repairs.json",
+      "bytes": 3108,
+      "sha256": "12cb927c48d8bfaddc30470b8954b3292743ca7ccaaad5ea7a501b9d8616e6ee",
+      "git_blob": "fd1ef5fd2e96050e90fa41668e332a7ea6cfa671",
+      "public": {
+        "repo": "Elvlin/exvius-offline",
+        "ref": "65da3ca6b7924774c6c22dfbe397157c4a8966c4"
+      }
+    },
+    {
+      "path": "source/server/content/trust_exchange.json",
+      "bytes": 3262,
+      "sha256": "4e6c2084753935ea05fc59084de540bc2e6afd4208cc54cfa6e55b3869b10925",
+      "git_blob": "ed81f091e9ff85889aca974c6c9212ae25d18ca7",
+      "public": {
+        "repo": "Elvlin/exvius-offline",
+        "ref": "65da3ca6b7924774c6c22dfbe397157c4a8966c4"
+      }
+    },
+    {
+      "path": "source/server/daily_quests.json",
+      "bytes": 19874,
+      "sha256": "525d1df3b8469f2e8bf7f88a839172143767c9f603f85cd79ef9d8e340142c6d",
+      "git_blob": "353bcc7245024da1a62d7fb8042a08af659ee3f4",
+      "public": {
+        "repo": "Elvlin/exvius-offline",
+        "ref": "65da3ca6b7924774c6c22dfbe397157c4a8966c4"
+      }
+    },
+    {
+      "path": "source/server/data_paths.py",
+      "bytes": 6702,
+      "sha256": "e18e3bd8cbef862917c046cf47db147dd514dbbe0baa2dae26b62fe379800710",
+      "git_blob": "ab7ce7ce14319f7ac7275e4f66c376511dffe905",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/drop_rate_preview.py",
+      "bytes": 3938,
+      "sha256": "5a7bc8d521297a89a6102101dc62b016d567b1591379527e0ca3cba0a544a87a",
+      "git_blob": "f64da9796489d864db1ffa0f80a64a27f6384ce2",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/endpoints.json",
+      "bytes": 51252,
+      "sha256": "69586e4890620db8b7597fcc03bca21b747a94ada6ea5be489068aa3c8f73246",
+      "git_blob": "b1ba02b27cc38d4635dfb9b6ccda2df249393256",
+      "public": {
+        "repo": "Elvlin/exvius-offline",
+        "ref": "65da3ca6b7924774c6c22dfbe397157c4a8966c4"
+      }
+    },
+    {
+      "path": "source/server/event_archive.py",
+      "bytes": 7038,
+      "sha256": "75183b5af3b42970bc72231f119e496e8e6d3d38e59d0e94bfc06b3ccefc3f77",
+      "git_blob": "2c9064e16af9c63ae2ac83c473c0122c31e0f873",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/event_art.json",
+      "bytes": 1278139,
+      "sha256": "6ca95d5c42bc1109336924e5b50a528a7bd0114c3912a8c92a0713345b7e543c",
+      "git_blob": "cbd4011740de919981d0108f90bc7b2c588dbca9",
+      "public": {
+        "repo": "Elvlin/exvius-offline",
+        "ref": "65da3ca6b7924774c6c22dfbe397157c4a8966c4"
+      }
+    },
+    {
+      "path": "source/server/exvius_actions.py",
+      "bytes": 21624,
+      "sha256": "4b17cdecc1f893bb9bc8e69fdda046c2211d44c0d1a10582a50eed5fe975ead4",
+      "git_blob": "2fc4f9adadb6907669e41ed28b25beff8318720e",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/exvius_actions_arena.py",
+      "bytes": 20017,
+      "sha256": "8becf073e27b434e42d2f1a746f6cdcd203ca1f3d12b141b69d55678e4db45cf",
+      "git_blob": "5164750221d9be4d857ed9326d8a53d2cd8b9644",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/exvius_actions_expedition.py",
+      "bytes": 52790,
+      "sha256": "90c3854a72e7dffb14282871ba3436523f8ce576e0c9f652c69cd2e64131d546",
+      "git_blob": "98f6dfa1d58c2cf7ef797038431041fd7db4b900",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/exvius_actions_modes.py",
+      "bytes": 58635,
+      "sha256": "738326156cc582c40fa19d9a2d0ceae721411aeb1e5e94176920d9d83b3de400",
+      "git_blob": "f1c985c138c75a8a44e39a03c61fcfed63de4518",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/exvius_actions_shops.py",
+      "bytes": 67596,
+      "sha256": "03b1dd80133899dd87cdaaed52301385ff1760db78fd66ac682a18a4ab355358",
+      "git_blob": "c235b7b434af3b23b4c8b82604c084870ee61c45",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/exvius_arena.py",
+      "bytes": 15791,
+      "sha256": "59e80c58d5153e663447c03d3efbd4dc95535e5e576aa9e2a445e7e552c7eac2",
+      "git_blob": "d08a52117cafff647f7b1e6aec286c9a3d17abd2",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/exvius_challenges.py",
+      "bytes": 9108,
+      "sha256": "6d5e04d9891b790b3b4dc7a5151a05d7efa5bb855774fabac9c8604f1462bc05",
+      "git_blob": "ba5a8d323881b367677f46c4fe9b4f07b2393f20",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/exvius_colosseum.py",
+      "bytes": 10462,
+      "sha256": "44736923d5988b7f870d2b27eb16dad14ce331325c42b78a29e2031a7f0d1ca2",
+      "git_blob": "cf78842abdcd6662539ffb74451bedce0c8c2923",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/exvius_events.py",
+      "bytes": 4685,
+      "sha256": "cfff9e97d69c4f8c896c9cac744cedbe559abaa4425e7d1955913acb8544c9ca",
+      "git_blob": "69a9147b5dc4cd365f7e68373506eeb2d6e31347",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/exvius_field_treasures.py",
+      "bytes": 8765,
+      "sha256": "1b11d0030099dbbfbef8d2e635e149878273d70b98fe8939ba1329d490e1125c",
+      "git_blob": "93f67f82b6bfcd5ffa96a02bb10f727f189e199d",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/exvius_fortuna.py",
+      "bytes": 15920,
+      "sha256": "eb5fd9aef50e6ae610a8eacba4ec9128c67bb4b3d5d479377fae7f77cdc934a8",
+      "git_blob": "0d8397675275dda59011eccf441e1bd8e64efae9",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/exvius_gacha_select.py",
+      "bytes": 3381,
+      "sha256": "7a9484e2ed2555e94ba4ca40ac24afa23543b069af382d5b56115cecb93a0984",
+      "git_blob": "8cb0754ac9bbbf7375e4e8c2f5238c8193f8d7d1",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/exvius_offline.py",
+      "bytes": 1534,
+      "sha256": "a86e11768ca42ff10e70cbd1b4a02574c0acf652f6fea0126f037782d262eb1c",
+      "git_blob": "f0c38508bfeffefa283c02101235c2ad4dbd3615",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/exvius_raid_progress.py",
+      "bytes": 26918,
+      "sha256": "12f69431d355a30cd7e5fda7d9c130554348fabb2a48121b7b995ba98475a034",
+      "git_blob": "618d7011ed41878906a347bcc2435710be1cf20e",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/exvius_repeat.py",
+      "bytes": 13534,
+      "sha256": "a7795fa3b600efdf7139f4b8c17a51371fec8330018c0c2056372f3abcfe1d92",
+      "git_blob": "58a32c121c04d835c4a3b5f53cef44f1a994bbea",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/exvius_rewards.py",
+      "bytes": 2437,
+      "sha256": "0af667b1e066fe58efa72bacf897475db132148accdbd7e19a665186e85aa251",
+      "git_blob": "a8ab1c1e6603aa304900ae7261b998cec057c017",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/exvius_shop_catalogue.py",
+      "bytes": 7354,
+      "sha256": "1eaf7552e2b55e999736b5ae1d164a86cd1a7e924b0fd2868aff1443bb92cac5",
+      "git_blob": "f1c21c287aaf6cb2dea1ed291fe529815e0f08c1",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/ffbe_banner.py",
+      "bytes": 26721,
+      "sha256": "bc4aaf12e3dbd5bdec590da0c0f7766b57cd6a61604a2d42dec10280f3054d66",
+      "git_blob": "cb27780f34a354e2f58b1056c650a1b65f0d9488",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/ffbe_battle.py",
+      "bytes": 84708,
+      "sha256": "d730cb6f45912611318bed3838d5b907db01f674a85c350bc814734f82a5687f",
+      "git_blob": "da7bdf921f540060f2ec986e5ee6119336232ad1",
+      "public_base": {
+        "repo": "Elvlin/exvius-offline",
+        "ref": "8bcede33b4af67ad245e30d9053f2b4aef6923c6",
+        "bytes": 83523,
+        "sha256": "a12ded3b8ff33c25aedc520e35a5a55de3b988d9d3cdab30e2c4b55d34111140",
+        "git_blob": "8d7646f44884e7df75fe055b332b8c6225110d4f"
+      },
+      "line_edits": [
+        [
+          109,
+          113,
+          "ICAgIEl0ZW1zIGZhaWxpbmcgdGhlaXIgYXV0aG9yZWQgcmF0ZSByb2xsIGFyZSBkcm9wcGVkOyBhIHJvbGwgbWF5IGxlZ2l0aW1hdGVseSB5aWVsZCBubyBpdGVtcy4KICAgIE9taXQgYDlCZXRNMkRzYCB3aGVuIG5vIGl0ZW1zIHN1cnZpdmUgcmF0aGVyIHRoYW4gZW1pdHRpbmcgYW4gZW1wdHkgQ1NWLCBwcmVzZXJ2aW5nIHRoZSBleGlzdGluZwogICAgZW1wdHktZmllbGQgaGFuZGxpbmcgZm9yIHRoZSBuYXRpdmUgcGFyc2VyLgo="
+        ],
+        [
+          145,
+          147,
+          "ICAgICAgICAjIGZvciBpdCAtLSBzbyB0aGUgcG9vbCBiZWxvbmdzIGluIHRoZSBzZXJ2ZWQgYDlCZXRNMkRzYCwgYW5kIHRoZSBzZXJ2ZXIgb25seSByb2xscyBpdC4KICAgICAgICAjIEFuIGVtcHR5IGNhbmRpZGF0ZSBwb29sIHJlY2VpdmVzIG5vIGZhbGxiYWNrIGl0ZW1zLgo="
+        ],
+        [
+          153,
+          154,
+          "ICAgICAgICAgICAgc3JjID0gcm93LmdldChEUk9QX1RPS0VOKSBvciAiIgo="
+        ],
+        [
+          161,
+          163,
+          ""
+        ],
+        [
+          177,
+          191,
+          ""
+        ],
+        [
+          221,
+          222,
+          "ICAgIGFsb25lLiBBIG1pc3Npbmcgcm9sbCBhbmQgYSByZWNvcmRlZCBlbXB0eSByb2xsIGFyZSBkaXN0aW5jdCwgYnV0IG5laXRoZXIgcGVybWl0cyBjbGVhcmluZyBhIHJlc3VsdAogICAgc29sZWx5IGZyb20gdGhlIG1pc3Npb24ta2V5ZWQgY2FjaGU6IGl0IGRvZXMgbm90IHByb3ZlIHRoZSBjdXJyZW50IGF0dGVtcHQncyBkcm9wIHNldC4K"
+        ],
+        [
+          239,
+          239,
+          "ICAgIGlmIHJvbGxlZF9mb3JfdGhpcyBpcyBOb25lOgogICAgICAgIHJldHVybiBzcGVjICAgICAgICAgICAgICAjIG5vIHJlY29yZGVkIHJvbGwgZm9yIHRoaXMgbWlzc2lvbgo="
+        ],
+        [
+          240,
+          241,
+          "ICAgICAgICByZXR1cm4gc3BlYyAgICAgICAgICAgICAgIyByZWNvcmRlZCBlbXB0eSByb2xsOyBhdHRlbXB0IGlkZW50aXR5L25hdGl2ZSBvbWlzc2lvbiBub3QgZXN0YWJsaXNoZWQK"
+        ],
+        [
+          484,
+          485,
+          "ICAgIG1pZCA9IG1pc3Npb25faWRfZnJvbShwbGFpbnRleHQpCiAgICB3YXZlX2NvdW50ID0gbWlzc2lvbl93YXZlX2NvdW50KG1pZCkKICAgIGVtcHR5X2V4cGxvcmF0aW9uID0gd2F2ZV9jb3VudCA9PSAwCiAgICAjIE9ubHkgdGhlIGV4aXN0aW5nIHBlbmRpbmctYXR0ZW1wdCBib3VuZGFyeSBhbmQgYSB3ZWxsLWZvcm1lZCBub25lbXB0eSBjbGllbnQgcmVwb3J0CiAgICAjIGF1dGhvcml6ZSBmdWxsIHJlcGxhY2VtZW50IG9mIHRoZSByZWNvZ25pemVkIGRyb3AgY2hhbm5lbHMuIEEgbWlzc2luZyBvciBlbXB0eSByZXBvcnQKICAgICMgaXMgbm90IHByb29mIG9mIHplcm8sIGluY2x1ZGluZyByZXBlYXQgbm9ybWFsaXphdGlvbiB3aGljaCBvbWl0cyBlbXB0eSBmaWVsZHMuCiAgICBkcm9wX3Rva2VucyA9IChSRVNVTFRfRFJPUF9UT0tFTiwgKlRZUEVEX1JFU1VMVF9EUk9QUy52YWx1ZXMoKSkKICAgIGF0dGVtcHQgPSBTdGF0ZS5wbGF5ZXIuZGF0YS5nZXQoJ2V4dml1c19yZXBlYXQnLCB7fSkuZ2V0KCdhdHRlbXB0Jywge30pIGlmIFN0YXRlLnBsYXllciBpcyBub3QgTm9uZSBlbHNlIHt9CiAgICByZXBsYWNlX3JlcG9ydGVkID0gKGJvb2woZHJvcHMpIGFuZCBtaWQgaXMgbm90IE5vbmUgYW5kIHdhdmVfY291bnQgaXMgbm90IE5vbmUgYW5kIHdhdmVfY291bnQgPiAwCiAgICAgICAgICAgICAgICAgICAgICAgIGFuZCBtaWQgbm90IGluIENBUFRVUkVfTUlTU0lPTlMgYW5kIG1pZCBub3QgaW4gRU5MSUdIVEVOTUVOVF9EUk9QUwogICAgICAgICAgICAgICAgICAgICAgICBhbmQgbWlkIG5vdCBpbiBDSEFNQkVSX09GX1JJQ0hFUyBhbmQgU3RhdGUucGxheWVyIGlzIG5vdCBOb25lCiAgICAgICAgICAgICAgICAgICAgICAgIGFuZCBTdGF0ZS5wbGF5ZXIubW9kZSAhPSAnZnJvemVuJyBhbmQgYXR0ZW1wdC5nZXQoJ21pZCcpID09IG1pZAogICAgICAgICAgICAgICAgICAgICAgICBhbmQgYXR0ZW1wdC5nZXQoJ3N0YXR1cycpID09ICdwZW5kaW5nJyBhbmQgbm90IGF0dGVtcHQuZ2V0KCdub3JtYWxfcmV3YXJkc19yZWNvcmRlZCcpKQogICAgaWYgcmVwbGFjZV9yZXBvcnRlZDoKICAgICAgICBmb3IgdG9rZW4gaW4gZHJvcF90b2tlbnM6CiAgICAgICAgICAgIGlmIHRva2VuIG5vdCBpbiBzcmM6CiAgICAgICAgICAgICAgICBjb250aW51ZQogICAgICAgICAgICB2YWx1ZSA9IHNyY1t0b2tlbl0KICAgICAgICAgICAgaWYgbm90IGlzaW5zdGFuY2UodmFsdWUsIHN0cik6CiAgICAgICAgICAgICAgICByZXBsYWNlX3JlcG9ydGVkID0gRmFsc2UKICAgICAgICAgICAgICAgIGJyZWFrCiAgICAgICAgICAgIGlmIG5vdCB2YWx1ZToKICAgICAgICAgICAgICAgIGNvbnRpbnVlCiAgICAgICAgICAgIGZvciBlbnRyeSBpbiB2YWx1ZS5zcGxpdCgnLCcpOgogICAgICAgICAgICAgICAgZmllbGRzID0gZW50cnkuc3BsaXQoJzonKQogICAgICAgICAgICAgICAgaWYgKGxlbihmaWVsZHMpICE9IDMgb3Igbm90IGFsbChmLmlzYXNjaWkoKSBhbmQgZi5pc2RpZ2l0KCkgZm9yIGYgaW4gZmllbGRzKQogICAgICAgICAgICAgICAgICAgICAgICBvciBub3QgZmllbGRzWzJdLnN0cmlwKCcwJykKICAgICAgICAgICAgICAgICAgICAgICAgb3IgKHRva2VuICE9IFJFU1VMVF9EUk9QX1RPS0VOIGFuZCBUWVBFRF9SRVNVTFRfRFJPUFMuZ2V0KGZpZWxkc1swXSkgIT0gdG9rZW4pKToKICAgICAgICAgICAgICAgICAgICByZXBsYWNlX3JlcG9ydGVkID0gRmFsc2UKICAgICAgICAgICAgICAgICAgICBicmVhawogICAgICAgICAgICBpZiBub3QgcmVwbGFjZV9yZXBvcnRlZDoKICAgICAgICAgICAgICAgIGJyZWFrCg=="
+        ],
+        [
+          501,
+          501,
+          "ICAgICAgICAgICAgaWYgcmVwbGFjZV9yZXBvcnRlZDoKICAgICAgICAgICAgICAgICMgU2FtZSBvbWlzc2lvbiBwYXR0ZXJuIGFzIHJlcGVhdF9ydW5fcmVwb3J0OiBjbGVhciBvbmx5IGtub3duIGRyb3AgY2hhbm5lbHMsCiAgICAgICAgICAgICAgICAjIHRoZW4gd3JpdGUgdGhlIGNhbm9uaWNhbCByZXBvcnRlZCBzZXQuIE90aGVyIHJlc3VsdCByZXdhcmRzIGFyZSB1bnRvdWNoZWQuCiAgICAgICAgICAgICAgICBmb3IgdG9rZW4gaW4gZHJvcF90b2tlbnM6CiAgICAgICAgICAgICAgICAgICAgcm93LnBvcCh0b2tlbiwgTm9uZSkK"
+        ]
+      ]
+    },
+    {
+      "path": "source/server/ffbe_certs.py",
+      "bytes": 7699,
+      "sha256": "8c892801ad9486ebc7131fe2ec489988ef6630b0f22ff4b967de9f4cfd04df27",
+      "git_blob": "734c83fa55cb2cec45aafb6ba26a3c433aa8b491",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/ffbe_config.py",
+      "bytes": 125220,
+      "sha256": "0899e9a8776ad5ae85ad71113b3b8bdfd227b2388f83835748bd54c17bba0401",
+      "git_blob": "940a2456c6345904a99bdf5b894e4b246efeb2dc",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/ffbe_crypto.py",
+      "bytes": 6007,
+      "sha256": "6e9595e483420bb819b23c397d90d6aa3a220617e768bf553ce0b2cff326dd4b",
+      "git_blob": "b1c4479cfdc633d0abce893e01551f4043068c50",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/ffbe_friends.py",
+      "bytes": 17982,
+      "sha256": "14eae77c787687a0b6abe05fbe71e5f17d1ff67c9b90175fce1badbf7265b621",
+      "git_blob": "642ca0c774ee9addf32005ca59692850c75ad4cb",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/ffbe_gacha.py",
+      "bytes": 55153,
+      "sha256": "9680343f4e98c6eda0d0056596aeffca970ebdeaab32a53993aa598221a9a527",
+      "git_blob": "02e5806a6e109c9df87e63c2a607aad2802304b5",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/ffbe_pipeline.py",
+      "bytes": 41062,
+      "sha256": "3c7cabb3ecfac59932f4277c1901e39abcfac0aff55bb418462f1943f1f99c81",
+      "git_blob": "1e37ed7c5caca213c09751da988d2a90932e40db",
+      "public": {
+        "repo": "Elvlin/exvius-offline",
+        "ref": "8bcede33b4af67ad245e30d9053f2b4aef6923c6"
+      }
+    },
+    {
+      "path": "source/server/ffbe_player.py",
+      "bytes": 253476,
+      "sha256": "7361b7a36dfddf5348f5f99899e807a0989f5b4215929fc12bb7637168aa22e1",
+      "git_blob": "2224306697676e3772820a748f75d63669ad49f1",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/ffbe_state.py",
+      "bytes": 28360,
+      "sha256": "9ffcffa6cd621390dc084d255285db0ca9b14ac06d209276be12c5a7a2075455",
+      "git_blob": "3daadca887d60de29362b8a068f3279f2c0e1c6a",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/gacha_archive.py",
+      "bytes": 9275,
+      "sha256": "6bdd56ddcd03876714b1af1be5b7ae7c150f82dcb2c5c49e6c32e78f1519becf",
+      "git_blob": "e56fab28f873816ee91d74ef1440abef2f94c7cd",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/gacha_authored.json",
+      "bytes": 163321,
+      "sha256": "46a7d7a60f94292c2cb22cb1d47de6be03b1471bc954a6554c76e0e550104103",
+      "git_blob": "534ed0a5203945412231575fa695fe4c0ae34bba",
+      "public": {
+        "repo": "Elvlin/exvius-offline",
+        "ref": "65da3ca6b7924774c6c22dfbe397157c4a8966c4"
+      }
+    },
+    {
+      "path": "source/server/gacha_box.py",
+      "bytes": 6515,
+      "sha256": "15fe6fbed2a4af4f74b1bcb822966d9767801dcb29b2e044440ddd4046bf3215",
+      "git_blob": "b7110408c8cad41eefba8e18f31a05788d1fc8fa",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/gacha_campaigns.json",
+      "bytes": 108749,
+      "sha256": "ca8a2b96792bc1e8ea0f0457ed3dc69336cd6faec3b6a53bfc8955d93d49fa6e",
+      "git_blob": "6cc13619d2b7ff596d5a1c1fe96b670b39103e13",
+      "public": {
+        "repo": "Elvlin/exvius-offline",
+        "ref": "65da3ca6b7924774c6c22dfbe397157c4a8966c4"
+      }
+    },
+    {
+      "path": "source/server/gacha_catalogue.json",
+      "bytes": 4951493,
+      "sha256": "7f1e560ca6bacbaf7f37d2d38586ebb03249836fcb2f1396ee8f33703e87c5d5",
+      "git_blob": "5c4da78cf363f535648e4a1f4dd6d76a2ef63223",
+      "public": {
+        "repo": "Elvlin/exvius-offline",
+        "ref": "65da3ca6b7924774c6c22dfbe397157c4a8966c4"
+      }
+    },
+    {
+      "path": "source/server/gacha_community.json",
+      "bytes": 7175288,
+      "sha256": "e325fdec982793e9b7f8319a70a2e1eccf48f9338702eda9ca29345322512d1a",
+      "git_blob": "eec03d799de6f875d1dab6f561df35bfe13818bd",
+      "public": {
+        "repo": "Elvlin/exvius-offline",
+        "ref": "65da3ca6b7924774c6c22dfbe397157c4a8966c4"
+      }
+    },
+    {
+      "path": "source/server/gacha_named.json",
+      "bytes": 81353972,
+      "sha256": "c96f769fa423cfbb0e1ee25d7f55106b114c81b53832efb4a5ad48a79edcbbe9",
+      "git_blob": "66a24465b7497b2892101e3c33708dae3f1a7cef",
+      "public": {
+        "repo": "Elvlin/exvius-offline",
+        "ref": "65da3ca6b7924774c6c22dfbe397157c4a8966c4"
+      }
+    },
+    {
+      "path": "source/server/gacha_rates.py",
+      "bytes": 8021,
+      "sha256": "260cca0498248ba8672350d059565b6cf34a835121ad5c10f589c7e186b3ff5b",
+      "git_blob": "7b0b307e0d67c02e08fa493dd2d0e727b2555e8a",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/gacha_standard.json",
+      "bytes": 87471,
+      "sha256": "2eaf5623472726c88fc1623005f03ff2ac6a81b4e5c9a7057c26047c4642b7d1",
+      "git_blob": "1b2779065cd7cdfe362b78ec2dfaf760849a0214",
+      "public": {
+        "repo": "Elvlin/exvius-offline",
+        "ref": "65da3ca6b7924774c6c22dfbe397157c4a8966c4"
+      }
+    },
+    {
+      "path": "source/server/global_bundles.json",
+      "bytes": 4770,
+      "sha256": "db65ef417b07c935f3bde9c82abcc5644d2c63301bbf000a1e0a4754f2ec431f",
+      "git_blob": "fedafc2b4003c68b3ac9f05928e80c2bbe3e353d",
+      "public": {
+        "repo": "Elvlin/exvius-offline",
+        "ref": "65da3ca6b7924774c6c22dfbe397157c4a8966c4"
+      }
+    },
+    {
+      "path": "source/server/local_game.py",
+      "bytes": 3948,
+      "sha256": "368e21664fc30a2b8e98d9ea289f981c9780126eb8429a6ce493176a782ec8e4",
+      "git_blob": "5b39c123540a16621c9ca7866e16198e73aee871",
+      "public": {
+        "repo": "Elvlin/exvius-offline",
+        "ref": "8bcede33b4af67ad245e30d9053f2b4aef6923c6"
+      }
+    },
+    {
+      "path": "source/server/login_calendar.json",
+      "bytes": 205534,
+      "sha256": "6dac86308565cf34f20fd83c50e278a7676fc41dbcd5db22a95fd4548ccee8cc",
+      "git_blob": "90550b3e7ba433cdd7d370d71e75f959dce99888",
+      "public": {
+        "repo": "Elvlin/exvius-offline",
+        "ref": "65da3ca6b7924774c6c22dfbe397157c4a8966c4"
+      }
+    },
+    {
+      "path": "source/server/offline_menu.py",
+      "bytes": 1709,
+      "sha256": "c15c365642e43d34f5f9a8e2c98d00bbf5985e4909d12d3a63b9a2ff6ef87fc5",
+      "git_blob": "dfd497440aec54123b953e24212feb26bd86f1b4",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/party_preset_preview.py",
+      "bytes": 6173,
+      "sha256": "4e8119a7b0f5322cfea94b183835eaf5c9f2ce2e029ba0ccc27698ae83d9fc89",
+      "git_blob": "7c32308cdf09d58017f23fe6e08299af9bc99345",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/player_state.py",
+      "bytes": 327628,
+      "sha256": "12a91be9f473b553f069b38fbc5cf4589e0b890fff13a7243a5e2956125d24bb",
+      "git_blob": "3117608a985331e586bf5982facdc645d8cc50c5",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/progression_multiplier_preview.py",
+      "bytes": 3280,
+      "sha256": "4d926ce43bc79c10df0d3cf4ce98efc18049e8639e0d4979f6c4fe6da1604120",
+      "git_blob": "9cd56c3971f0f490e1b2af4b30ac74b2278952ac",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/quest_favorites_view.py",
+      "bytes": 4780,
+      "sha256": "366b0f50593fd89436261ddfd359bb8b966e626685607897e49dd1756004d114",
+      "git_blob": "5632448cb4fce3612bbf178e8772c206a7849d82",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/raid_archive.json",
+      "bytes": 1214149,
+      "sha256": "09b134ade4fe325b7dbbaa8d86ed5051e9b82a5afa0fe11e8b6e3ee5e767fc7c",
+      "git_blob": "e5631a00d3f1e50aa07ec935ce358512723bac93",
+      "public": {
+        "repo": "Elvlin/exvius-offline",
+        "ref": "65da3ca6b7924774c6c22dfbe397157c4a8966c4"
+      }
+    },
+    {
+      "path": "source/server/raid_rewards.json",
+      "bytes": 12777,
+      "sha256": "a7ce7704477c9747d423bd275b0b9b930876343269ec2ebf9be26d81ffd0eef4",
+      "git_blob": "a37c97ed91a53a5c087ed04f682666473a9c44fb",
+      "public": {
+        "repo": "Elvlin/exvius-offline",
+        "ref": "65da3ca6b7924774c6c22dfbe397157c4a8966c4"
+      }
+    },
+    {
+      "path": "source/server/raid_summon.py",
+      "bytes": 2658,
+      "sha256": "adbe1704a924a16c2615172abcba52143afeec3462b3d0030e168242319936e5",
+      "git_blob": "5b900f8135fdd180d5242ca448be455f503cd29c",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/responses.json",
+      "bytes": 615808,
+      "sha256": "2306cfec277f50b270a84c3b92a3d9373b8dc28e6f9fc5310b06acd58bd4edd2",
+      "git_blob": "b38734728a543c6a61e8f37e2d25ab691ce44d33",
+      "public": {
+        "repo": "Elvlin/exvius-offline",
+        "ref": "65da3ca6b7924774c6c22dfbe397157c4a8966c4"
+      }
+    },
+    {
+      "path": "source/server/reward_receipt_summary.py",
+      "bytes": 7268,
+      "sha256": "f5e9ec47aa09232a3e14bb6e7485ab85b450d9284aeb794aca96f1163ec4e925",
+      "git_blob": "7b6cd3c0a3347569f6a01991d1ffeebe4e12c5f2",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/season.py",
+      "bytes": 16826,
+      "sha256": "20425e48e00ed858c7ca5ead333ad79e3cbc3bc564d27b2aff650b325ef92e10",
+      "git_blob": "50c180d0cca64fbdf68bfd2bab8c5d7b0336beec",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server/seasons.json",
+      "bytes": 7763,
+      "sha256": "cb5fa20c6d855f4e0c4b5d918b8a17cc0ba8e3b25899e65bea150fbd913c313d",
+      "git_blob": "addab2b8b677d0bb27d2be2198d22dfaabe7e78e",
+      "public": {
+        "repo": "Elvlin/exvius-offline",
+        "ref": "65da3ca6b7924774c6c22dfbe397157c4a8966c4"
+      }
+    },
+    {
+      "path": "source/server/summon_art.json",
+      "bytes": 54350,
+      "sha256": "eeced8e77ba9b3864cd27c8c07cca4fb2df593a5970cb296b06b3c498b787d5e",
+      "git_blob": "4f58148a97ea6b3b6cd655adc7d35db40ae5e092",
+      "public": {
+        "repo": "Elvlin/exvius-offline",
+        "ref": "65da3ca6b7924774c6c22dfbe397157c4a8966c4"
+      }
+    },
+    {
+      "path": "source/server/unit_roster_view.py",
+      "bytes": 3578,
+      "sha256": "6816763f18596074b104b3bdc957159a6fbb8626fc69c4d7b5f54e1d6f5bb30e",
+      "git_blob": "3a76deb70978ab27e8bfea3da3c718e4b40d0f9c",
+      "public": {
+        "repo": "HmoobGod/FFBE-Custom",
+        "ref": "1a36586e9a06b362df4eff9e54a08ca2a13b2330"
+      }
+    },
+    {
+      "path": "source/server_app/deps.json",
+      "bytes": 2128,
+      "sha256": "32caf2b7c45274c1c5fe7e6735a7f2a6a8499433b47fd0821b9471d92cb0de93",
+      "git_blob": "ab1f98924c1a3ac624a129ad3a18f0ffd342d07a",
+      "public": {
+        "repo": "Elvlin/exvius-offline",
+        "ref": "65da3ca6b7924774c6c22dfbe397157c4a8966c4"
+      }
+    }
+  ],
+  "pipeline": {
+    "PIPELINE": 58,
+    "PIPELINE_EDGES": 26
+  },
+  "real_runtime_approval": false,
+  "automatic_installer_approval": false
+}
