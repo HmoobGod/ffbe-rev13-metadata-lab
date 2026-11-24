@@ -1,4 +1,4 @@
-name: Stage5 game-free Android ARM64 JNI execution
+name: Stage5 game-free ARM64 JNI package-service correction
 on:
   push:
     branches: [stage5-android-host-probe-20261124]
@@ -8,7 +8,7 @@ jobs:
   probe:
     if: github.event_name == 'push' && github.ref == 'refs/heads/stage5-android-host-probe-20261124' && github.repository == 'HmoobGod/ffbe-rev13-metadata-lab'
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 35
     steps:
       - name: Inventory and provision public SDK only
         shell: bash
@@ -160,7 +160,22 @@ jobs:
           export ADB_SERVER_SOCKET=tcp:127.0.0.1:5037
           "$emulator" @stage5_empty -accel off -no-window -gpu swiftshader_indirect -no-audio -no-snapshot -wipe-data -no-boot-anim -no-metrics -port 5554 -memory 1536 -cores 2 > "$PROBE_ROOT/emulator.log" 2>&1 &
           pid=$!
-          trap 'kill "$pid" 2>/dev/null || true; "$adb" kill-server || true; tail -80 "$PROBE_ROOT/emulator.log"' EXIT
+          finish() {
+            rc=$?
+            trap - EXIT
+            if (( rc != 0 )); then
+              echo "RUNTIME_FAILURE_EXIT=$rc"
+              timeout 20 "$adb" -s emulator-5554 shell getprop sys.boot_completed || true
+              timeout 20 "$adb" -s emulator-5554 shell service check package || true
+              timeout 20 "$adb" -s emulator-5554 shell pidof system_server || true
+              timeout 30 "$adb" -s emulator-5554 logcat -b all -d -t 300 || true
+            fi
+            kill "$pid" 2>/dev/null || true
+            timeout 20 "$adb" kill-server || true
+            tail -80 "$PROBE_ROOT/emulator.log" || true
+            exit "$rc"
+          }
+          trap finish EXIT
           for i in $(seq 1 64); do
             kill -0 "$pid" 2>/dev/null || { echo "emulator exited"; exit 1; }
             if test "$(timeout 8 "$adb" -s emulator-5554 shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 1; then
@@ -173,9 +188,49 @@ jobs:
               test "$(timeout 30 "$adb" -s emulator-5554 shell getprop ro.dalvik.vm.native.bridge | tr -d '\r')" = libndk_translation.so
               test -z "$(timeout 30 "$adb" -s emulator-5554 shell pm list packages -3 | tr -d '\r')"
               echo 'SOFTWARE_BOOT_PASS__EMPTY_GUEST_ONLY'
-              timeout 90 "$adb" -s emulator-5554 install "$PROBE_ROOT/fixture-signed.apk" | grep -Fx Success
+              # Require three consecutive successful real package-manager queries with a stable system_server PID.
+              stable=0
+              previous_pid=""
+              for attempt in $(seq 1 12); do
+                kill -0 "$pid"
+                if service="$(timeout 30 "$adb" -s emulator-5554 shell service check package 2>&1)" &&
+                   [[ "$(printf '%s' "$service" | tr -d '\r')" == 'Service package: found' ]] &&
+                   current_pid="$(timeout 30 "$adb" -s emulator-5554 shell pidof system_server | tr -d '\r')" &&
+                   [[ "$current_pid" =~ ^[0-9]+$ ]] &&
+                   path_result="$(timeout 45 "$adb" -s emulator-5554 shell cmd package path android 2>&1)" &&
+                   [[ "$(printf '%s' "$path_result" | tr -d '\r')" == 'package:/system/framework/framework-res.apk' ]]; then
+                  if [[ "$previous_pid" == "$current_pid" ]]; then
+                    stable=$((stable + 1))
+                  else
+                    stable=1
+                  fi
+                  previous_pid="$current_pid"
+                  echo "PACKAGE_SERVICE_SAMPLE=$attempt STABLE=$stable SYSTEM_SERVER_PID=$current_pid"
+                  if (( stable >= 3 )); then break; fi
+                else
+                  echo "PACKAGE_SERVICE_NOT_READY_SAMPLE=$attempt"
+                  stable=0
+                  previous_pid=""
+                fi
+                sleep 10
+              done
+              if (( stable < 3 )); then
+                echo 'PACKAGE_SERVICE_READINESS_HOLD'
+                exit 1
+              fi
+              echo 'PACKAGE_SERVICE_READINESS_PASS'
+              # ADB's documented non-streaming mode pushes the APK before package installation.
+              if ! timeout 240 "$adb" -s emulator-5554 install --no-streaming "$PROBE_ROOT/fixture-signed.apk" > "$PROBE_ROOT/install.log" 2>&1; then
+                cat "$PROBE_ROOT/install.log"
+                echo 'NON_STREAMING_INSTALL_HOLD'
+                exit 1
+              fi
+              cat "$PROBE_ROOT/install.log"
+              tr -d '\r' < "$PROBE_ROOT/install.log" | grep -Fx Success
+              timeout 45 "$adb" -s emulator-5554 shell pm path org.ffbeprobe.arm64 | tr -d '\r' | grep -E '^package:/data/app/.*/base\.apk$'
+              echo 'SYNTHETIC_APK_INSTALL_PASS'
               timeout 30 "$adb" -s emulator-5554 logcat -c
-              timeout 90 "$adb" -s emulator-5554 shell am start -W -n org.ffbeprobe.arm64/.ProbeActivity
+              timeout 180 "$adb" -s emulator-5554 shell am start -W -n org.ffbeprobe.arm64/.ProbeActivity
               for n in $(seq 1 12); do
                 app_pid="$(timeout 20 "$adb" -s emulator-5554 shell pidof org.ffbeprobe.arm64 | tr -d '\r' || true)"
                 if [[ "$app_pid" =~ ^[0-9]+$ ]]; then
@@ -199,4 +254,5 @@ jobs:
           EOF
           # Create disconnected network namespace with host privilege, then drop privilege before launching guest.
           runner_user="$(id -un)"
-          sudo timeout 720 unshare --net bash -c 'set -euo pipefail; ip link set lo up; exec runuser -u "$1" -- env ANDROID_SDK_ROOT="$2" ANDROID_HOME="$2" PROBE_ROOT="$3" ANDROID_AVD_HOME="$4" ANDROID_USER_HOME="$5" bash "$3/boot.sh"' _ "$runner_user" "$ANDROID_SDK_ROOT" "$PROBE_ROOT" "$ANDROID_AVD_HOME" "$ANDROID_USER_HOME"
+          bash -n "$PROBE_ROOT/boot.sh"
+          sudo timeout 1560 unshare --net bash -c 'set -euo pipefail; ip link set lo up; exec runuser -u "$1" -- env ANDROID_SDK_ROOT="$2" ANDROID_HOME="$2" PROBE_ROOT="$3" ANDROID_AVD_HOME="$4" ANDROID_USER_HOME="$5" bash "$3/boot.sh"' _ "$runner_user" "$ANDROID_SDK_ROOT" "$PROBE_ROOT" "$ANDROID_AVD_HOME" "$ANDROID_USER_HOME"
