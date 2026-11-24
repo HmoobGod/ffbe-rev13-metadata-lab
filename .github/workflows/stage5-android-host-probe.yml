@@ -1,0 +1,87 @@
+name: Stage5 game-free Android software host probe
+on:
+  push:
+    branches: [stage5-android-host-probe-20261124]
+    paths: ['.github/workflows/stage5-android-host-probe.yml']
+permissions: {}
+jobs:
+  probe:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/stage5-android-host-probe-20261124' && github.repository == 'HmoobGod/ffbe-rev13-metadata-lab'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Inventory and provision public SDK only
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "No private input, checkout, secret, or APK."
+          root="$RUNNER_TEMP/stage5-sdk"
+          mkdir -m 700 "$root"
+          test -n "$ANDROID_HOME"
+          sdk="$(realpath "$ANDROID_HOME")"
+          emu="$sdk/emulator/emulator"
+          adb="$sdk/platform-tools/adb"
+          manager="$sdk/cmdline-tools/latest/bin/sdkmanager"
+          avd="$sdk/cmdline-tools/latest/bin/avdmanager"
+          test -x "$emu" && test -x "$adb" && test -x "$manager" && test -x "$avd"
+          uname -m
+          free -h
+          ls -l /dev/kvm || true
+          "$emu" -version
+          "$emu" -accel-check || true
+          "$adb" version
+          image="system-images;android-30;google_apis;x86_64"
+          img="$sdk/system-images/android-30/google_apis/x86_64"
+          if ! test -f "$img/system.img"; then
+            timeout 240 "$manager" --sdk_root="$sdk" "$image"
+          fi
+          test -f "$img/system.img"
+          cat "$img/source.properties"
+          sha256sum "$emu" "$adb" "$img/system.img" "$img/source.properties"
+          echo "ANDROID_SDK_ROOT=$sdk" >> "$GITHUB_ENV"
+          echo "PROBE_ROOT=$root" >> "$GITHUB_ENV"
+          echo "ANDROID_AVD_HOME=$root/avd" >> "$GITHUB_ENV"
+          echo "ANDROID_USER_HOME=$root/android" >> "$GITHUB_ENV"
+      - name: Fresh software-only guest boot in disconnected namespace
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -m 700 "$ANDROID_AVD_HOME" "$ANDROID_USER_HOME"
+          printf 'no\n' | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/avdmanager" create avd -n stage5_empty -k 'system-images;android-30;google_apis;x86_64'
+          cat >> "$ANDROID_AVD_HOME/stage5_empty.avd/config.ini" <<'EOF'
+          hw.ramSize=1536
+          hw.cpu.ncore=2
+          hw.lcd.width=480
+          hw.lcd.height=800
+          hw.lcd.density=160
+          disk.dataPartition.size=1073741824
+          EOF
+          cat > "$PROBE_ROOT/boot.sh" <<'EOF'
+          set -euo pipefail
+          ip link set lo up
+          test "$(ls /sys/class/net | tr '\n' ' ')" = 'lo '
+          test -z "$(ip route show)"
+          test -z "$(ip -6 route show default)"
+          ip -br addr
+          export ADB_SERVER_SOCKET=tcp:127.0.0.1:5037
+          adb="$ANDROID_SDK_ROOT/platform-tools/adb"
+          emulator="$ANDROID_SDK_ROOT/emulator/emulator"
+          "$emulator" @stage5_empty -accel off -no-window -gpu swiftshader_indirect -no-audio -no-snapshot -wipe-data -no-boot-anim -no-metrics -port 5554 -memory 1536 -cores 2 > "$PROBE_ROOT/emulator.log" 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true; "$adb" kill-server || true; tail -80 "$PROBE_ROOT/emulator.log"' EXIT
+          for i in $(seq 1 48); do
+            kill -0 "$pid" 2>/dev/null || { echo "emulator exited"; exit 1; }
+            if test "$(timeout 8 "$adb" -s emulator-5554 shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 1; then
+              "$adb" -s emulator-5554 shell getprop ro.build.version.sdk
+              "$adb" -s emulator-5554 shell getprop ro.product.cpu.abilist
+              "$adb" -s emulator-5554 shell getprop ro.dalvik.vm.native.bridge
+              "$adb" -s emulator-5554 shell pm list packages -3
+              echo 'SOFTWARE_BOOT_PASS__EMPTY_GUEST_ONLY'
+              exit 0
+            fi
+            sleep 5
+          done
+          echo 'SOFTWARE_BOOT_TIMEOUT__NO_APPROVAL'
+          exit 1
+          EOF
+          timeout 420 unshare --user --map-root-user --net bash "$PROBE_ROOT/boot.sh"
