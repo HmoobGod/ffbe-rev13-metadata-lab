@@ -165,11 +165,11 @@ jobs:
               "$adb" -s emulator-5554 shell getprop ro.build.version.sdk
               "$adb" -s emulator-5554 shell getprop ro.product.cpu.abilist
               "$adb" -s emulator-5554 shell getprop ro.dalvik.vm.native.bridge
-              "$adb" -s emulator-5554 shell pm list packages -3
               test "$(timeout 30 "$adb" -s emulator-5554 shell getprop ro.build.version.sdk | tr -d '\r')" = 30
               timeout 30 "$adb" -s emulator-5554 shell getprop ro.product.cpu.abilist | tr -d '\r' | grep -Eq '(^|,)arm64-v8a(,|$)'
               test "$(timeout 30 "$adb" -s emulator-5554 shell getprop ro.dalvik.vm.native.bridge | tr -d '\r')" = libndk_translation.so
-              test -z "$(timeout 30 "$adb" -s emulator-5554 shell pm list packages -3 | tr -d '\r')"
+              inventory="$(timeout 30 "$adb" -s emulator-5554 shell pm list packages -3 | tr -d '\r')"
+              test -z "$inventory"
               echo 'KVM_BOOT_PASS__EMPTY_GUEST_ONLY'
               # Require three consecutive successful real package-manager queries with a stable system_server PID.
               stable=0
@@ -210,7 +210,8 @@ jobs:
               fi
               tr -d '\r' < "$PROBE_ROOT/install.log" | grep -Fxq Success
               timeout 45 "$adb" -s emulator-5554 shell pm path com.exvius.offline.test | tr -d '\r' | grep -Eq '^package:/data/app/.*/base\.apk$'
-              test "$(timeout 30 "$adb" -s emulator-5554 shell pm list packages -3 | tr -d '\r')" = 'package:com.exvius.offline.test'
+              inventory="$(timeout 30 "$adb" -s emulator-5554 shell pm list packages -3 | tr -d '\r')"
+              test "$inventory" = 'package:com.exvius.offline.test'
               echo 'FFBE_DIAGNOSTIC_INSTALL_PASS'
               test "$(timeout 30 "$adb" -s emulator-5554 shell pidof system_server | tr -d '\r')" = "$previous_pid"
               timeout 30 "$adb" -s emulator-5554 shell service check activity | tr -d '\r' | grep -Fxq 'Service activity: found'
@@ -234,7 +235,8 @@ jobs:
               timeout 30 "$adb" -s emulator-5554 shell rm -f /sdcard/ffbe_diag.xml >/dev/null 2>&1
               timeout 60 "$adb" -s emulator-5554 uninstall com.exvius.offline.test > "$PROBE_ROOT/uninstall.log" 2>&1
               tr -d '\r' < "$PROBE_ROOT/uninstall.log" | grep -Fxq Success
-              test -z "$(timeout 30 "$adb" -s emulator-5554 shell pm list packages -3 | tr -d '\r')"
+              inventory="$(timeout 30 "$adb" -s emulator-5554 shell pm list packages -3 | tr -d '\r')"
+              test -z "$inventory"
               echo 'FFBE_DIAGNOSTIC_REMOVAL_PASS'
               echo 'DIAGNOSTIC_ONLY_PASS__GAMEPLAY_HOLD'
               exit 0
