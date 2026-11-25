@@ -99,7 +99,7 @@ jobs:
           file_id = os.environ.pop("FFBE_DRIVE_FILE_ID", "")
           target = pathlib.Path(os.environ["PROBE_ROOT"]) / "diagnostic.apk"
           expected = 74189339
-          digest = "f153a2d7cf60954cece329d2b3e6781a38e65e52908f910a117f6c82c56b2f3d"
+          digest = "8e0f6e2bf4f3f43ab12f45d2fef2aea45e800f5a32f46229a67037adca810a16"
           created = False
           stage = "VALIDATION"
           code = None
@@ -280,7 +280,7 @@ jobs:
               fi
               echo 'PACKAGE_SERVICE_READINESS_PASS'
               test "$(stat -c %s "$PROBE_ROOT/diagnostic.apk")" = 74189339
-              printf '%s  %s\n' f153a2d7cf60954cece329d2b3e6781a38e65e52908f910a117f6c82c56b2f3d "$PROBE_ROOT/diagnostic.apk" | sha256sum -c --status
+              printf '%s  %s\n' 8e0f6e2bf4f3f43ab12f45d2fef2aea45e800f5a32f46229a67037adca810a16 "$PROBE_ROOT/diagnostic.apk" | sha256sum -c --status
               if ! timeout 240 "$adb" -s emulator-5554 install --no-streaming "$PROBE_ROOT/diagnostic.apk" > "$PROBE_ROOT/install.log" 2>&1; then
                 echo 'DIAGNOSTIC_INSTALL_HOLD'
                 exit 1
