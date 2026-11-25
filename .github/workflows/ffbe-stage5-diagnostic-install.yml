@@ -71,44 +71,121 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          timeout 300 python3 - <<'PY'
-          import os, re, pathlib, hashlib, urllib.request, sys
+          rc=0
+          timeout 300 python3 - <<'PY' || rc=$?
+          import os, re, pathlib, hashlib, urllib.request, urllib.error, http.client, ssl, sys
           class NoRedirect(urllib.request.HTTPRedirectHandler):
               def redirect_request(self, req, fp, code, msg, headers, newurl):
                   return None
+          class Hold(Exception):
+              pass
+          def http_code(status):
+              if status == 400:
+                  return "HTTP_400_BAD_REQUEST"
+              if status == 401:
+                  return "HTTP_401_INVALID_OR_EXPIRED_AUTH"
+              if status == 403:
+                  return "HTTP_403_FORBIDDEN_OR_QUOTA"
+              if status == 404:
+                  return "HTTP_404_NOT_FOUND_OR_NO_ACCESS"
+              if status == 429:
+                  return "HTTP_429_RATE_LIMIT"
+              if 300 <= status < 400:
+                  return "HTTP_REDIRECT_REFUSED"
+              if 500 <= status < 600:
+                  return "HTTP_SERVER_ERROR"
+              return "HTTP_UNEXPECTED_STATUS"
           token = os.environ.pop("FFBE_DRIVE_ACCESS_TOKEN", "")
           file_id = os.environ.pop("FFBE_DRIVE_FILE_ID", "")
           target = pathlib.Path(os.environ["PROBE_ROOT"]) / "diagnostic.apk"
           expected = 74189339
           digest = "f153a2d7cf60954cece329d2b3e6781a38e65e52908f910a117f6c82c56b2f3d"
+          created = False
+          stage = "VALIDATION"
+          code = None
           try:
-              if not token or re.fullmatch(r"[A-Za-z0-9._~-]+", token) is None:
-                  raise ValueError("missing or malformed token")
+              if not token:
+                  raise Hold("TOKEN_MISSING")
+              # RFC 6750 bearer syntax; never print the token, length, or any fragment.
+              if re.fullmatch(r"[A-Za-z0-9._~+/-]+=*", token) is None:
+                  raise Hold("TOKEN_FORMAT_INVALID")
+              if not file_id:
+                  raise Hold("FILE_ID_MISSING")
               if re.fullmatch(r"[A-Za-z0-9_-]{10,200}", file_id) is None:
-                  raise ValueError("missing or malformed file ID")
+                  raise Hold("FILE_ID_FORMAT_INVALID")
               req = urllib.request.Request(
                   "https://www.googleapis.com/drive/v3/files/" + file_id + "?alt=media",
                   headers={"Authorization": "Bearer " + token, "Accept-Encoding": "identity"})
               opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
               h = hashlib.sha256()
               count = 0
-              with opener.open(req, timeout=45) as response, target.open("xb") as out:
+              stage = "CONNECT"
+              with opener.open(req, timeout=45) as response:
                   if response.status != 200:
-                      raise ValueError("unexpected response")
-                  for chunk in iter(lambda: response.read(1024 * 1024), b""):
-                      count += len(chunk)
-                      if count > expected:
-                          raise ValueError("oversize")
-                      h.update(chunk)
-                      out.write(chunk)
-              if count != expected or h.hexdigest() != digest:
-                  raise ValueError("identity mismatch")
+                      raise Hold(http_code(response.status))
+                  if response.headers.get("Content-Encoding", "identity").lower() != "identity":
+                      raise Hold("UNEXPECTED_CONTENT_ENCODING")
+                  stage = "LOCAL_WRITE"
+                  with target.open("xb") as out:
+                      created = True
+                      while True:
+                          stage = "READ"
+                          chunk = response.read(1024 * 1024)
+                          if not chunk:
+                              break
+                          count += len(chunk)
+                          if count > expected:
+                              raise Hold("SIZE_OVERSIZE")
+                          stage = "LOCAL_WRITE"
+                          h.update(chunk)
+                          out.write(chunk)
+                      stage = "LOCAL_WRITE"
+              if count != expected:
+                  raise Hold("SIZE_SHORT")
+              if h.hexdigest() != digest:
+                  raise Hold("SHA256_MISMATCH")
+          except Hold as exc:
+              code = exc.args[0]
+          except urllib.error.HTTPError as exc:
+              code = http_code(exc.code)
+          except urllib.error.URLError as exc:
+              if isinstance(exc.reason, ssl.SSLError):
+                  code = "TLS_FAILURE"
+              elif isinstance(exc.reason, TimeoutError):
+                  code = "NETWORK_TIMEOUT"
+              else:
+                  code = "NETWORK_CONNECT_FAILURE"
+          except ssl.SSLError:
+              code = "TLS_FAILURE"
+          except TimeoutError:
+              code = "NETWORK_TIMEOUT"
+          except http.client.IncompleteRead:
+              code = "DOWNLOAD_INCOMPLETE"
+          except http.client.HTTPException:
+              code = "HTTP_PROTOCOL_FAILURE"
+          except OSError:
+              code = "LOCAL_IO_FAILURE" if stage == "LOCAL_WRITE" else "NETWORK_IO_FAILURE"
           except Exception:
-              target.unlink(missing_ok=True)
+              code = "UNCLASSIFIED_FAILURE"
+          if code is not None:
+              if created:
+                  try:
+                      target.unlink(missing_ok=True)
+                  except OSError:
+                      print("TRANSFER_PARTIAL_CLEANUP_HOLD")
+              print("TRANSFER_DIAGNOSTIC=" + code)
               print("AUTHORIZED_TRANSFER_HOLD__NO_APK_ADMITTED")
               sys.exit(1)
           print("EXACT_DIAGNOSTIC_APK_IDENTITY_PASS")
           PY
+          if (( rc != 0 )); then
+            if (( rc == 124 || rc == 137 )); then
+              echo 'TRANSFER_DIAGNOSTIC=PROCESS_TIMEOUT_OR_TERMINATION'
+            elif (( rc != 1 )); then
+              echo 'TRANSFER_DIAGNOSTIC=PROCESS_FAILURE'
+            fi
+            exit "$rc"
+          fi
       - name: Fresh disconnected KVM guest and diagnostic-only startup
         shell: bash
         run: |
