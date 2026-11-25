@@ -1,0 +1,96 @@
+name: FFBE stage 7 public release payload comparison
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Enter STATIC_PUBLIC_REFERENCE_ONLY'
+        required: true
+        type: string
+permissions: {}
+concurrency:
+  group: ffbe-stage7-release-payload-compare
+  cancel-in-progress: false
+jobs:
+  compare:
+    if: github.event_name == 'workflow_dispatch' && github.repository == 'HmoobGod/ffbe-rev13-metadata-lab' && github.ref == 'refs/heads/main' && github.actor == 'HmoobGod' && github.run_attempt == 1 && inputs.confirmation == 'STATIC_PUBLIC_REFERENCE_ONLY'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Compare exact public reference with frozen R1 fingerprints
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          work="$(mktemp -d)"
+          trap 'rm -rf -- "$work"' EXIT
+          curl --disable --fail --silent --show-error --location --max-redirs 5 --proto '=https' --proto-redir '=https' --max-time 180 --max-filesize 41295064 --output "$work/reference.apk" 'https://github.com/Elvlin/exvius-offline/releases/download/v0.1.36/exvius-offline-v0.1.36.apk'
+          test "$(stat -c %s "$work/reference.apk")" = 41295064
+          printf '%s  %s\n' 280cd1bc9abae9ecbc3fcb0ba5d1138dbc08511763166e2b120e2be0f41a42a7 "$work/reference.apk" | sha256sum -c --status
+          echo EXACT_PUBLIC_REFERENCE_IDENTITY_PASS
+          python -I - "$work/reference.apk" <<'PY'
+          import hashlib, io, sys, zipfile
+          # R1 exact whole APK SHA256 8e0f6e2bf4f3f43ab12f45d2fef2aea45e800f5a32f46229a67037adca810a16
+          outer = {
+              'assets/chaquopy/app.imy': '0df21f65b988bb329e90296b31f1f5ccbbdc061293cef9c7591181bd20dd13ef',
+              'assets/chaquopy/requirements-common.imy': '02eae8dafa1de0aafcf8772952d2ff8f5a90d642d1a444704229074f88768edb',
+              'assets/chaquopy/requirements-arm64-v8a.imy': '8739c76e681f900923b900c9df0ef75cf421d39cabb54650c4b9ad19b6a76d85',
+              'assets/chaquopy/bootstrap.imy': '35213476c415316e43b92fb156b46889379b01440018fbd0a29b7baa968933d7',
+              'assets/chaquopy/stdlib-common.imy': 'f8aaebc008fcb96f5c2fa20bb202fd77463e8ff79b1f4db5d6d74d27c9036a49',
+              'assets/chaquopy/stdlib-arm64-v8a.imy': 'ae5829012f83c65da0e473f3ada5315155b35c5d10042f688014b3561a51aa0c',
+              'lib/arm64-v8a/libgame.so': 'a127654037f2f28a70cce7c64ff0a9d291770ea904cdf5bcba59a7af9a6937e4',
+              'lib/arm64-v8a/libexviustest.so': 'de0feab1ae960aa6cb24440bcb02dc3149ef84c4672a4f19ff4405aba63eaabc',
+              'lib/arm64-v8a/libexviustest.js.so': '866520ff4f46f000129201028dcac0325ab860d81bac0f7c636e60766acf59a9',
+              'lib/arm64-v8a/libpython3.10.so': '194781d8bba9ad0db34725390957bb73a71c0ab2c9c1d449b94cd80680bb149e',
+          }
+          inner = {
+              'android_game.pyc': '01d5bda0a89b45f1083cdbd7dd7c1a6f3fa1078e431668f7be3d8bd3be01808a',
+              'local_game.pyc': '072b64c3186311ff2e58372e7731a00dd92ad7101f9ea98cfad6b949b85bb545',
+              'capture_server.pyc': '17e0246cfe88b31b5735ae8456d676be07c2fa6b0ce49119f31ddabf50185c96',
+              'ffbe_battle.pyc': 'e5e8f9a15bd7a08c7bc963808260b0c9fefc64cb0de806b2ec89b256551b734d',
+              'ffbe_pipeline.pyc': '48082261dd615a73b224fbec54c7fea9d38333e56f796f622c2d17b32ff50372',
+              'player_state.pyc': '41f85022bad124f5a16d6ee75f9ad69364f715af265d84f9ca5325ee525d6436',
+              'data_paths.pyc': '9a955e88f6aa6976257ad2fdbdc7aa0b0c00fe9edb8a71f56701d67c6b2044db',
+          }
+          cap = 128 * 1024 * 1024
+          def index(z):
+              names = z.namelist()
+              if len(names) != len(set(names)) or len(names) > 100000:
+                  raise ValueError('invalid archive index')
+              return set(names)
+          def read(z, names, name):
+              if name not in names:
+                  return None
+              item = z.getinfo(name)
+              if not 0 <= item.file_size <= cap or item.flag_bits & 1:
+                  raise ValueError('invalid member')
+              with z.open(item) as f:
+                  data = f.read(cap + 1)
+              if len(data) != item.file_size:
+                  raise ValueError('member size mismatch')
+              return data
+          def compare(label, data, expected):
+              result = 'ABSENT' if data is None else 'MATCH' if hashlib.sha256(data).hexdigest() == expected else 'DIFFERENT'
+              print('PAYLOAD_COMPARISON ' + label + ' ' + result)
+          try:
+              with zipfile.ZipFile(sys.argv[1]) as z:
+                  names = index(z)
+                  for n, h in outer.items():
+                      data = read(z, names, n)
+                      compare(n, data, h)
+                      if n == 'assets/chaquopy/app.imy':
+                          if data is None:
+                              for k, v in inner.items():
+                                  compare('python:' + k, None, v)
+                          else:
+                              with zipfile.ZipFile(io.BytesIO(data)) as app:
+                                  ni = index(app)
+                                  for k, v in inner.items():
+                                      compare('python:' + k, read(app, ni, k), v)
+          except Exception:
+              print('STATIC_REFERENCE_COMPARISON_HOLD')
+              raise SystemExit(1) from None
+          print('STATIC_REFERENCE_COMPARISON_COMPLETE__NO_COMPATIBILITY_APPROVAL')
+          PY
+      - name: Preserve all approval boundaries
+        if: always()
+        run: echo 'real_runtime_approval=false; automatic_installer_approval=false; gameplay_admission=HOLD'
