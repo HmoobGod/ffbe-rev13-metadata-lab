@@ -306,8 +306,59 @@ jobs:
             if timeout 8 "$adb" -s emulator-5554 shell dumpsys activity activities > "$PROBE_ROOT/failure-activities.log" 2>&1; then
               if grep -Eq "$resumed_pattern" "$PROBE_ROOT/failure-activities.log"; then echo 'STARTUP_OBSERVATION=DIAGNOSTIC_ACTIVITY_RESUMED'; else echo 'STARTUP_OBSERVATION=DIAGNOSTIC_RESUME_NOT_WITNESSED'; fi
             else echo 'STARTUP_OBSERVATION=RESUMED_QUERY_FAILED'; fi
-            if timeout 8 "$adb" -s emulator-5554 logcat -b crash -d -t 200 > "$PROBE_ROOT/failure-crash.log" 2>&1; then
+            if timeout 8 "$adb" -s emulator-5554 logcat -b crash -v brief -d -t 200 > "$PROBE_ROOT/failure-crash.log" 2>&1; then
               if grep -Eq '(Process: com\.exvius\.offline\.test,|Cmdline: com\.exvius\.offline\.test([[:space:]]|$)|>>> com\.exvius\.offline\.test <<<)' "$PROBE_ROOT/failure-crash.log"; then echo 'STARTUP_OBSERVATION=APP_CRASH_LOG_MATCH'; else echo 'STARTUP_OBSERVATION=NO_APP_CRASH_MATCH_IN_BOUNDED_SAMPLE'; fi
+              python3 - "$PROBE_ROOT/failure-crash.log" 2>/dev/null <<'CRASH_PY' || echo 'STARTUP_CRASH_CLASS=CLASSIFIER_PROCESS_FAILURE'
+          import re
+          import sys
+          
+          LIMIT = 524288
+          PACKAGE = 'com.exvius.offline.test'
+          
+          def classify(raw):
+              if len(raw) > LIMIT:
+                  return 'SAMPLE_OVERSIZE'
+              blocks = []
+              active = {}
+              for line in raw.decode('utf-8', 'replace').splitlines():
+                  match = re.fullmatch(r'E/AndroidRuntime\(\s*(\d+)\):\s?(.*)', line)
+                  if not match:
+                      continue
+                  pid, msg = match.groups()
+                  if msg.startswith('FATAL EXCEPTION:'):
+                      block = [pid, []]
+                      blocks.append(block)
+                      active[pid] = block[1]
+                  if pid in active:
+                      active[pid].append(msg)
+              selected = [msgs for pid, msgs in blocks if f'Process: {PACKAGE}, PID: {pid}' in msgs]
+              if len(selected) != 1:
+                  return 'NO_UNIQUE_JAVA_FATAL_BLOCK'
+              msgs = selected[0]
+              joined = '\n'.join(msgs)
+              gate = any(re.match(r'\s*at com\.exvius\.local\.BootstrapAdmissionGate\.requireInstallationOnly\(', line) for line in msgs)
+              provider = any(re.match(r'\s*at com\.exvius\.local\.LocalGameProvider\.onCreate\(', line) for line in msgs)
+              if gate and provider:
+                  if 'Caused by: java.lang.IllegalStateException: FFBE HOLD: untrusted installation root' in msgs:
+                      return 'INSTALLATION_ROOT_HOLD'
+                  if 'Caused by: java.lang.IllegalStateException: FFBE HOLD: missing Android context' in msgs:
+                      return 'INSTALLATION_CONTEXT_HOLD'
+              for exception, code in [('VerifyError','DEX_VERIFICATION_ERROR'),('NoClassDefFoundError','CLASS_DEFINITION_MISSING'),('ClassNotFoundException','CLASS_NOT_FOUND'),('UnsatisfiedLinkError','NATIVE_LINK_ERROR'),('SecurityException','SECURITY_EXCEPTION')]:
+                  if re.search(r'(?m)^(?:Caused by: )?java\.lang\.'+exception+r'(?::|$)', joined):
+                      return code
+              for prefix, code in [('Unable to get provider ','PROVIDER_INITIALIZATION_FAILURE'),('Unable to instantiate application ','APPLICATION_INSTANTIATION_FAILURE'),('Unable to create application ','APPLICATION_CREATION_FAILURE'),('Unable to start activity ','ACTIVITY_INITIALIZATION_FAILURE'),('Unable to instantiate activity ','ACTIVITY_INSTANTIATION_FAILURE')]:
+                  if any(line.startswith('java.lang.RuntimeException: '+prefix) for line in msgs):
+                      return code
+              return 'OTHER_JAVA_FATAL_EXCEPTION'
+          
+          if __name__ == '__main__':
+              try:
+                  with open(sys.argv[1], 'rb') as f:
+                      result = classify(f.read(LIMIT+1))
+              except Exception:
+                  result = 'CLASSIFIER_READ_FAILURE'
+              print('STARTUP_CRASH_CLASS='+result)
+          CRASH_PY
             else echo 'STARTUP_OBSERVATION=CRASH_QUERY_FAILED'; fi
             if timeout 8 "$adb" -s emulator-5554 logcat -b events -d -t 300 > "$PROBE_ROOT/failure-events.log" 2>&1; then
               if grep -Eq 'am_anr[[:space:]]*:.*,[[:space:]]*com\.exvius\.offline\.test,' "$PROBE_ROOT/failure-events.log"; then echo 'STARTUP_OBSERVATION=APP_ANR_LOG_MATCH'; else echo 'STARTUP_OBSERVATION=NO_APP_ANR_MATCH_IN_BOUNDED_SAMPLE'; fi
