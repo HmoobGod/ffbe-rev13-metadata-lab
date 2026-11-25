@@ -290,24 +290,73 @@ jobs:
               inventory="$(timeout 30 "$adb" -s emulator-5554 shell pm list packages -3 | tr -d '\r')"
               test "$inventory" = 'package:com.exvius.offline.test'
               echo 'FFBE_DIAGNOSTIC_INSTALL_PASS'
-              test "$(timeout 30 "$adb" -s emulator-5554 shell pidof system_server | tr -d '\r')" = "$previous_pid"
-              timeout 30 "$adb" -s emulator-5554 shell service check activity | tr -d '\r' | grep -Fxq 'Service activity: found'
-              timeout 120 "$adb" -s emulator-5554 shell am start -W -n com.exvius.offline.test/.InstallationCheckActivity > "$PROBE_ROOT/start.log" 2>&1
-              tr -d '\r' < "$PROBE_ROOT/start.log" | grep -Fxq 'Status: ok'
-              timeout 30 "$adb" -s emulator-5554 shell pidof com.exvius.offline.test | tr -d '\r' > "$PROBE_ROOT/pid.txt"
-              grep -Eq '^[0-9]+$' "$PROBE_ROOT/pid.txt"
-              timeout 45 "$adb" -s emulator-5554 shell uiautomator dump /sdcard/ffbe_diag.xml > "$PROBE_ROOT/ui-dump.log" 2>&1
-              timeout 30 "$adb" -s emulator-5554 shell cat /sdcard/ffbe_diag.xml > "$PROBE_ROOT/ui.xml"
-              python3 - "$PROBE_ROOT/ui.xml" <<'PY'
+          startup_observe_failure() {
+            local observed service
+            if observed="$(timeout 8 "$adb" -s emulator-5554 shell pidof system_server 2>/dev/null | tr -d '\r')" && [[ "$observed" =~ ^[0-9]+$ ]]; then
+              if [[ "$observed" == "$previous_pid" ]]; then echo 'STARTUP_OBSERVATION=SYSTEM_SERVER_STABLE'; else echo 'STARTUP_OBSERVATION=SYSTEM_SERVER_CHANGED'; fi
+            else echo 'STARTUP_OBSERVATION=SYSTEM_SERVER_UNAVAILABLE'; fi
+            for service in activity package; do
+              if observed="$(timeout 8 "$adb" -s emulator-5554 shell service check "$service" 2>/dev/null | tr -d '\r')" && [[ "$observed" == "Service $service: found" ]]; then
+                echo "STARTUP_SERVICE_$service=AVAILABLE"
+              else echo "STARTUP_SERVICE_$service=UNAVAILABLE"; fi
+            done
+            if observed="$(timeout 8 "$adb" -s emulator-5554 shell pidof com.exvius.offline.test 2>/dev/null | tr -d '\r')"; then
+              if [[ "$observed" =~ ^[0-9]+$ ]]; then echo 'STARTUP_OBSERVATION=APP_PID_PRESENT'; else echo 'STARTUP_OBSERVATION=APP_PID_NOT_CONFIRMED'; fi
+            else echo 'STARTUP_OBSERVATION=APP_PID_QUERY_FAILED'; fi
+            if timeout 8 "$adb" -s emulator-5554 shell dumpsys activity activities > "$PROBE_ROOT/failure-activities.log" 2>&1; then
+              if grep -Eq "$resumed_pattern" "$PROBE_ROOT/failure-activities.log"; then echo 'STARTUP_OBSERVATION=DIAGNOSTIC_ACTIVITY_RESUMED'; else echo 'STARTUP_OBSERVATION=DIAGNOSTIC_RESUME_NOT_WITNESSED'; fi
+            else echo 'STARTUP_OBSERVATION=RESUMED_QUERY_FAILED'; fi
+            if timeout 8 "$adb" -s emulator-5554 logcat -b crash -d -t 200 > "$PROBE_ROOT/failure-crash.log" 2>&1; then
+              if grep -Eq '(Process: com\.exvius\.offline\.test,|Cmdline: com\.exvius\.offline\.test([[:space:]]|$)|>>> com\.exvius\.offline\.test <<<)' "$PROBE_ROOT/failure-crash.log"; then echo 'STARTUP_OBSERVATION=APP_CRASH_LOG_MATCH'; else echo 'STARTUP_OBSERVATION=NO_APP_CRASH_MATCH_IN_BOUNDED_SAMPLE'; fi
+            else echo 'STARTUP_OBSERVATION=CRASH_QUERY_FAILED'; fi
+            if timeout 8 "$adb" -s emulator-5554 logcat -b events -d -t 300 > "$PROBE_ROOT/failure-events.log" 2>&1; then
+              if grep -Eq 'am_anr[[:space:]]*:.*,[[:space:]]*com\.exvius\.offline\.test,' "$PROBE_ROOT/failure-events.log"; then echo 'STARTUP_OBSERVATION=APP_ANR_LOG_MATCH'; else echo 'STARTUP_OBSERVATION=NO_APP_ANR_MATCH_IN_BOUNDED_SAMPLE'; fi
+            else echo 'STARTUP_OBSERVATION=ANR_QUERY_FAILED'; fi
+          }
+          startup_fail() {
+            local stage="$1" rc="$2"
+            echo "STARTUP_HOLD_STAGE=$stage EXIT=$rc"
+            startup_observe_failure
+            exit "$rc"
+          }
+          startup_capture() {
+            local stage="$1" seconds="$2" dest="$3" rc
+            shift 3
+            echo "STARTUP_STAGE=$stage"
+            if timeout "$seconds" "$@" > "$dest" 2>&1; then
+              echo "STARTUP_COMMAND_PASS=$stage"
+            else
+              rc=$?
+              startup_fail "$stage" "$rc"
+            fi
+          }
+          resumed_pattern='(mResumedActivity|topResumedActivity):.*com\.exvius\.offline\.test/(\.InstallationCheckActivity|com\.exvius\.offline\.test\.InstallationCheckActivity)([[:space:]}]|$)'
+          startup_capture PRELAUNCH_SYSTEM_SERVER 30 "$PROBE_ROOT/system-pid.txt" "$adb" -s emulator-5554 shell pidof system_server
+          test "$(tr -d '\r' < "$PROBE_ROOT/system-pid.txt")" = "$previous_pid" || startup_fail PRELAUNCH_SYSTEM_SERVER_IDENTITY 1
+          startup_capture PRELAUNCH_ACTIVITY_SERVICE 30 "$PROBE_ROOT/service.txt" "$adb" -s emulator-5554 shell service check activity
+          tr -d '\r' < "$PROBE_ROOT/service.txt" | grep -Fxq 'Service activity: found' || startup_fail PRELAUNCH_ACTIVITY_SERVICE_IDENTITY 1
+          startup_capture ACTIVITY_LAUNCH_WAIT 120 "$PROBE_ROOT/start.log" "$adb" -s emulator-5554 shell am start -W -n com.exvius.offline.test/.InstallationCheckActivity
+          tr -d '\r' < "$PROBE_ROOT/start.log" | grep -Fxq 'Status: ok' || startup_fail ACTIVITY_LAUNCH_STATUS 1
+          echo 'STARTUP_ACTIVITY_STATUS_PASS'
+          startup_capture APP_PID_QUERY 30 "$PROBE_ROOT/pid.raw" "$adb" -s emulator-5554 shell pidof com.exvius.offline.test
+          tr -d '\r' < "$PROBE_ROOT/pid.raw" > "$PROBE_ROOT/pid.txt"
+          grep -Eq '^[0-9]+$' "$PROBE_ROOT/pid.txt" || startup_fail APP_PID_IDENTITY 1
+          startup_capture UI_DUMP 45 "$PROBE_ROOT/ui-dump.log" "$adb" -s emulator-5554 shell uiautomator dump /sdcard/ffbe_diag.xml
+          startup_capture UI_READ 30 "$PROBE_ROOT/ui.xml" "$adb" -s emulator-5554 shell cat /sdcard/ffbe_diag.xml
+          if ! python3 - "$PROBE_ROOT/ui.xml" > "$PROBE_ROOT/ui-validation.log" 2>&1 <<'PY'
           import sys, xml.etree.ElementTree as ET
           tree = ET.parse(sys.argv[1])
           marker = "FFBE installation-only diagnostic. Gameplay remains on HOLD."
           assert any(n.get("package") == "com.exvius.offline.test" and n.get("text") == marker for n in tree.iter("node"))
           PY
-              timeout 30 "$adb" -s emulator-5554 shell dumpsys activity activities > "$PROBE_ROOT/activities.log"
-              grep -Eq '(mResumedActivity|topResumedActivity):.*com\.exvius\.offline\.test/(\.InstallationCheckActivity|com\.exvius\.offline\.test\.InstallationCheckActivity)([[:space:]}]|$)' "$PROBE_ROOT/activities.log"
-              test "$(timeout 30 "$adb" -s emulator-5554 shell pidof com.exvius.offline.test | tr -d '\r')" = "$(cat "$PROBE_ROOT/pid.txt")"
-              test "$(timeout 30 "$adb" -s emulator-5554 shell pidof system_server | tr -d '\r')" = "$previous_pid"
+          then startup_fail UI_MARKER_VALIDATION 1; fi
+          echo 'STARTUP_UI_MARKER_PASS'
+          startup_capture RESUMED_ACTIVITY_QUERY 30 "$PROBE_ROOT/activities.log" "$adb" -s emulator-5554 shell dumpsys activity activities
+          grep -Eq "$resumed_pattern" "$PROBE_ROOT/activities.log" || startup_fail RESUMED_ACTIVITY_IDENTITY 1
+          startup_capture POST_UI_APP_PID 30 "$PROBE_ROOT/post-app-pid.txt" "$adb" -s emulator-5554 shell pidof com.exvius.offline.test
+          test "$(tr -d '\r' < "$PROBE_ROOT/post-app-pid.txt")" = "$(cat "$PROBE_ROOT/pid.txt")" || startup_fail POST_UI_APP_PID_IDENTITY 1
+          startup_capture POST_UI_SYSTEM_SERVER 30 "$PROBE_ROOT/post-system-pid.txt" "$adb" -s emulator-5554 shell pidof system_server
+          test "$(tr -d '\r' < "$PROBE_ROOT/post-system-pid.txt")" = "$previous_pid" || startup_fail POST_UI_SYSTEM_SERVER_IDENTITY 1
               echo 'FFBE_DIAGNOSTIC_UI_WITNESS_PASS'
               timeout 30 "$adb" -s emulator-5554 shell rm -f /sdcard/ffbe_diag.xml >/dev/null 2>&1
               timeout 60 "$adb" -s emulator-5554 uninstall com.exvius.offline.test > "$PROBE_ROOT/uninstall.log" 2>&1
