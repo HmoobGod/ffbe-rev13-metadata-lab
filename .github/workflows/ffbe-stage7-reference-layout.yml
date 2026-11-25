@@ -1,0 +1,130 @@
+name: FFBE stage 7 reference layout and native image
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Enter STATIC_LAYOUT_ONLY'
+        required: true
+        type: string
+permissions: {}
+jobs:
+  inventory:
+    if: github.event_name == 'workflow_dispatch' && github.repository == 'HmoobGod/ffbe-rev13-metadata-lab' && github.ref == 'refs/heads/main' && github.actor == 'HmoobGod' && github.run_attempt == 1 && inputs.confirmation == 'STATIC_LAYOUT_ONLY'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Inspect pinned public reference without execution
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          work="$(mktemp -d)"
+          trap 'rm -rf -- "$work"' EXIT
+          curl --disable --fail --silent --show-error --location --max-redirs 5 --proto '=https' --proto-redir '=https' --max-time 180 --max-filesize 41295064 --output "$work/reference.apk" 'https://github.com/Elvlin/exvius-offline/releases/download/v0.1.36/exvius-offline-v0.1.36.apk'
+          test "$(stat -c %s "$work/reference.apk")" = 41295064
+          printf '%s  %s\n' 280cd1bc9abae9ecbc3fcb0ba5d1138dbc08511763166e2b120e2be0f41a42a7 "$work/reference.apk" | sha256sum -c --status
+          echo EXACT_PUBLIC_REFERENCE_IDENTITY_PASS
+          python -I - "$work/reference.apk" <<'PY'
+          import hashlib, io, re, struct, sys, zipfile
+          cap = 128 * 1024 * 1024
+          def digest(b): return hashlib.sha256(b).hexdigest()
+          def read(z, name):
+              x = z.getinfo(name)
+              if not 0 <= x.file_size <= cap or x.flag_bits & 1:
+                  raise ValueError('member bounds')
+              with z.open(x) as f: b = f.read(cap + 1)
+              if len(b) != x.file_size: raise ValueError('member length')
+              return b
+          def elf_loads(b):
+              if len(b) < 64 or b[:7] != b'\x7fELF\x02\x01\x01':
+                  raise ValueError('not ELF64 little endian')
+              h = struct.unpack_from('<16sHHIQQQIHHHHHH', b)
+              off, ents, count = h[5], h[9], h[10]
+              if ents != 56 or not 1 <= count <= 128 or off + ents*count > len(b):
+                  raise ValueError('program header bounds')
+              rows = []
+              for i in range(count):
+                  kind, flags, p, v, _, fs, ms, al = struct.unpack_from('<IIQQQQQQ', b, off+i*ents)
+                  if kind != 1: continue
+                  if p+fs > len(b) or fs > ms: raise ValueError('segment bounds')
+                  rows.append((flags,v,fs,ms,al,digest(b[p:p+fs])))
+              if not rows: raise ValueError('no load segments')
+              return h[1], h[2], rows
+          def dex_classes(b):
+              if len(b)<112 or not re.fullmatch(b'dex\n[0-9]{3}\x00', b[:8]):
+                  raise ValueError('DEX format')
+              if struct.unpack_from('<III',b,32)!=(len(b),112,0x12345678):
+                  raise ValueError('DEX header')
+              ns,so,nt,to=struct.unpack_from('<IIII',b,56)
+              nc,co=struct.unpack_from('<II',b,96)
+              for n,o,w in [(ns,so,4),(nt,to,4),(nc,co,32)]:
+                  if n>1000000 or o+n*w>len(b): raise ValueError('DEX table bounds')
+              found=set()
+              for i in range(nc):
+                  ti=struct.unpack_from('<I',b,co+i*32)[0]
+                  if ti>=nt: raise ValueError('type index')
+                  si=struct.unpack_from('<I',b,to+4*ti)[0]
+                  if si>=ns: raise ValueError('string index')
+                  p=struct.unpack_from('<I',b,so+4*si)[0]
+                  for _ in range(5):
+                      if p>=len(b): raise ValueError('string bounds')
+                      c=b[p];p+=1
+                      if c<128:break
+                  else:raise ValueError('ULEB128')
+                  e=b.find(b'\x00',p,min(len(b),p+4096))
+                  if e<0:raise ValueError('descriptor length')
+                  found.add(b[p:e])
+              return found
+          baseline=[
+              (5,0,56754008,56754008,4096,'14a54c1ecefa8ae3a152e27ad9c3984af9dcda8bee9f0ae6965a540983ae799a'),
+              (6,0x3621ea0,3634184,9354040,4096,'1ff67b5cadaa84cfb6223c60da30b00c0ee143767c676d8053f164c0d2296cee')]
+          targets=[b'Lcom/exvius/local/LocalGameBridge;',b'Lcom/exvius/local/LocalGameProvider;',b'Lcom/exvius/local/DataUpdates;',b'Lcom/exvius/local/DataPack;',b'Lcom/exvius/local/GameAssets;',b'Lcom/chaquo/python/Python;',b'Lcom/exvius/offline/test/TestInitProvider;',b'Lcom/square_enix/android_googleplay/FFBEWW/Lapis;']
+          try:
+              with zipfile.ZipFile(sys.argv[1]) as z:
+                  names=z.namelist()
+                  if len(names)!=len(set(names)) or len(names)>100000: raise ValueError('archive index')
+                  files=[n for n in names if not n.endswith('/')]
+                  print('LAYOUT_FILE_COUNT='+str(len(files)))
+                  for prefix in ['assets/','lib/','res/']:
+                      print('LAYOUT_COUNT '+prefix+' '+str(sum(n.startswith(prefix) for n in files)))
+                  native=[n for n in files if re.fullmatch(r'lib/[a-zA-Z0-9_-]+/[a-zA-Z0-9_.+-]{1,120}\.so',n)]
+                  if len(native)>128:raise ValueError('native count')
+                  for n in sorted(native):
+                      print('NATIVE_MEMBER '+n+' '+str(z.getinfo(n).file_size))
+                  assets=[n for n in files if n.startswith('assets/')]
+                  print('ASSET_MEMBER_COUNT='+str(len(assets)))
+                  # ZIP magic candidates, bounded member prefix reads only.
+                  if len(assets)>10000: raise ValueError('asset count')
+                  for n in assets:
+                      with z.open(n) as f: magic=f.read(4)
+                      if magic in (b'PK\x03\x04',b'PK\x05\x06'):
+                          if not re.fullmatch(r'assets/[a-zA-Z0-9_./+-]{1,180}',n):continue
+                          print('NESTED_ZIP '+n+' '+str(z.getinfo(n).file_size))
+                          if z.getinfo(n).file_size>cap:continue
+                          with zipfile.ZipFile(io.BytesIO(read(z,n))) as nz:
+                              nn=nz.namelist()
+                              if len(nn)>100000 or len(nn)!=len(set(nn)):raise ValueError('nested index')
+                              for k in ['android_game','local_game','capture_server','ffbe_battle','ffbe_pipeline','player_state','data_paths']:
+                                  hits=sum(x.rsplit('/',1)[-1] in (k+'.py',k+'.pyc') for x in nn)
+                                  if hits:print('NESTED_MODULE '+k+' '+str(hits))
+                  dex=[n for n in files if re.fullmatch(r'classes(?:[0-9]+)?\.dex',n)]
+                  if not dex or len(dex)>32:raise ValueError('dex count')
+                  classes=set()
+                  for n in dex:classes.update(dex_classes(read(z,n)))
+                  print('DEX_CLASS_COUNT='+str(len(classes)))
+                  for k in targets: print('CLASS_DEFINITION '+k.decode('ascii')+' '+('PRESENT' if k in classes else 'ABSENT'))
+                  game=read(z,'lib/arm64-v8a/libgame.so')
+                  typ,machine,rows=elf_loads(game)
+                  print('GAME_ELF '+str(len(game))+' '+str(typ)+' '+str(machine))
+                  print('GAME_FILE_SHA256='+digest(game))
+                  print('GAME_LOAD_IMAGE='+('MATCH' if (typ,machine,rows)==(3,183,baseline) else 'DIFFERENT'))
+                  for flags,v,fs,ms,al,h in rows:
+                      print('LOAD_SEGMENT '+str(flags)+' '+str(v)+' '+str(fs)+' '+str(ms)+' '+str(al)+' '+h)
+          except Exception:
+              print('STATIC_LAYOUT_HOLD')
+              raise SystemExit(1) from None
+          print('STATIC_LAYOUT_COMPLETE__NO_COMPATIBILITY_APPROVAL')
+          PY
+      - name: Preserve approval boundaries
+        if: always()
+        run: echo 'real_runtime_approval=false; automatic_installer_approval=false; gameplay_admission=HOLD'
