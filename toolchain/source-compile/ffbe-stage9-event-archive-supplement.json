@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "purpose": "Additive source input for the existing restoration function; not a complete source manifest or runtime approval.",
+  "base_manifest_git_blob": "82ccb47ee4fa96a08483028721aa5d4008c25687",
+  "checkpoint_sha256": "8e96f0952ffd5b2945d456dac334a81d1f8deced7702b84039ca81b4d80ee420",
+  "files": [
+    {
+      "path": "source/server/event_archive.json",
+      "bytes": 750069,
+      "sha256": "98618ba14aed3e7cffe3b7befca542042a52d3f82f80936cbc45adfccf218ace",
+      "git_blob": "eabfca5d7e17fb55eb65cdba049e5fb3feb056ac",
+      "public": {
+        "repo": "Elvlin/exvius-offline",
+        "ref": "65da3ca6b7924774c6c22dfbe397157c4a8966c4"
+      }
+    }
+  ],
+  "pipeline": {
+    "PIPELINE": 58,
+    "PIPELINE_EDGES": 26
+  },
+  "real_runtime_approval": false,
+  "automatic_installer_approval": false,
+  "gameplay_admission": "HOLD"
+}
